@@ -1,8 +1,9 @@
 import csv
 import itertools
 import sys
-import getopt
-from memory_profiler import profile
+from ncbiutils.ncbiutils import PubMedFetch
+# import getopt
+# from memory_profiler import profile
 # import argparse
 
 # parser = argparse.ArgumentParser()
@@ -28,7 +29,7 @@ def csv2dict_reader(stream):
     return _csv2dict_reader()
 
 ####################################################
-#                  Transform
+#                  Filter
 ####################################################
 
 def filter(predicate):
@@ -42,6 +43,23 @@ def limit_filter(number):
     def _limit(items):
         yield from itertools.islice(items, number)
     return _limit
+
+####################################################
+#                  Transform
+####################################################
+
+def list_transformer(field):
+    "Create a list from a field"
+    def _list_transformer(items):
+        for item in items:
+            yield item[field]
+    return _list_transformer
+
+def pubmed_citation_transformer(items):
+    "Retrieve the PubMed record"
+    pmf = PubMedFetch()
+    uids = list(items)
+    return pmf.get_citations(uids)
 
 ####################################################
 #                  Load
@@ -59,11 +77,12 @@ if __name__ == '__main__':
     # args = parser.parse_args()
     # print(args.echo)
 
-    by_evidences = lambda x: int(x['indra_evidences_entity_constraint']) > 0
+    by_evidences = lambda x: int(x['indra_evidences_entity_constraint']) > 100
 
     pipeline = as_pipeline([
         csv2dict_reader(sys.stdin),
         filter(by_evidences),
-        # limit(100),
-        count_loader
+        list_transformer('pmid'),
+        pubmed_citation_transformer,
+        print_loader
     ])
