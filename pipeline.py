@@ -104,20 +104,8 @@ def print_loader(items):
     for item in items:
         print(item)
 
-def pumbmed_print_loader(chunks):
-    for chunk in chunks:
-        error, citations, ids = chunk
-        if error is not None:
-            print(f'Error retrieving ids: {ids}')
-            continue
-        else:
-            documents = [c.dict() for c in citations]
-            logger.info('Retrieved {n} documents', n=len(documents))
-
 def prediction_print_loader(predictions):
-    for prediction in predictions:
-        document, classification, probability = prediction
-        print(f'pmid: {document["pmid"]} -- classification: {classification} -- probability: {probability}')
+    logger.info('Captured {n} predictions', n=len(list(predictions)))
 
 
 ####################################################
