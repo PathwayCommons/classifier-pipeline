@@ -112,8 +112,7 @@ def pumbmed_print_loader(chunks):
             continue
         else:
             documents = [c.dict() for c in citations]
-            for d in documents:
-                print(f'Retrieved doc pmid: {d["pmid"]} -- title: {d["title"]}')
+            logger.info('Retrieved {n} documents', n=len(documents))
 
 def prediction_print_loader(predictions):
     for prediction in predictions:
