@@ -5,13 +5,42 @@ from ncbiutils.ncbiutils import PubMedFetch
 from pathway_abstract_classifier.pathway_abstract_classifier import Classifier
 from loguru import logger
 import time
+import argparse
 
-# import argparse
-# parser = argparse.ArgumentParser()
-# parser.add_argument('retmax')
-# parser.add_argument('threshold')
 
-# @profile
+####################################################
+#            Command line args
+####################################################
+retmax_limit = 10000
+default_threshold = 0.5
+parser = argparse.ArgumentParser()
+parser.add_argument('--retmax', nargs='?', type=int, default=str(retmax_limit))
+parser.add_argument('--threshold', nargs='?', type=float, default=str(default_threshold))
+
+def get_opts():
+    args = parser.parse_args()
+    opts = {
+        'retmax': args.retmax,
+        'threshold': args.threshold
+    }
+
+    if opts['retmax'] < 0:
+        raise ValueError('retmax must be non-negative')
+    elif opts['retmax'] > retmax_limit:
+        opts.update({'retmax', retmax_limit})
+
+    if opts['threshold'] < 0 or opts['threshold'] > 1:
+        raise ValueError('threshold must be on [0, 1]')
+
+    return opts
+
+
+
+
+####################################################
+#                 Pipeline
+####################################################
+
 def as_pipeline(steps):
     generator = steps.pop(0)
     for step in steps:
@@ -28,7 +57,7 @@ list2generator = lambda x: (n for n in x)
 
 def counter(items):
     item_list = list(items)
-    print(f"Number of items: {len(item_list)}")
+    print(f'Number of items: {len(item_list)}')
     return list2generator(item_list)
 
 
@@ -67,29 +96,51 @@ def limit_filter(number):
 
     return _limit
 
+def pubtype_filter(chunks):
+    """filter citations by publication types"""
+    pubtypes_to_exclude = [
+        'D016420',  # Comment
+        'D016454',  # Review
+        'D016440',  # Retraction of Publication
+        'D016441',  # Retracted Publication
+        'D016425',  # Published Erratum
+    ]
+
+    for chunk in chunks:
+        error, citations, ids = chunk
+        if error is not None:
+            print(f'Error retrieving ids: {ids}')
+            continue
+        else:
+            articles = []
+            logger.info('Filter IN: {n}', n=len(ids))
+            documents = [c.dict() for c in citations]
+            for document in documents:
+                excluded = False
+                for pubtype in document['publication_type_list']:
+                    if pubtype in pubtypes_to_exclude:
+                        excluded = True
+                if not excluded:
+                    articles.append(document)
+            logger.info('Filter OUT: {n}', n=len(articles))
+            yield articles
 
 # @profile
 def classification_transformer(**opts):
-    "Filter the chunks of citations based on text content"
+    """Filter the chunks of articles based on text content"""
     classifier = Classifier(**opts)
 
     def _classification_transformer(chunks):
-        for chunk in chunks:
-            error, citations, ids = chunk
-            if error is not None:
-                print(f"Error retrieving ids: {ids}")
-                continue
-            else:
-                logger.info("Got a chunk of {n} uids to classify", n=len(ids))
-                documents = [c.dict() for c in citations]
-                start = time.time()
-                predictions = classifier.predict(documents)
-                end = time.time()
-                logger.info(
-                    "Finished classification in {elapsed} seconds",
-                    elapsed=(end - start),
-                )
-                yield from predictions
+        for articles in chunks:
+            logger.info('Classifying: {n}', n=len(articles))
+            start = time.time()
+            predictions = classifier.predict(articles)
+            end = time.time()
+            logger.info(
+                'Finished classification in {elapsed} seconds',
+                elapsed=(end - start),
+            )
+            yield from predictions
 
     return _classification_transformer
 
@@ -100,7 +151,7 @@ def classification_transformer(**opts):
 
 
 def list_transformer(field):
-    "Create a list from a field"
+    """Create a list from a field"""
 
     def _list_transformer(items):
         for item in items:
@@ -110,7 +161,7 @@ def list_transformer(field):
 
 
 def pubmed_citation_transformer(**opts):
-    "Retrieve the PubMed record"
+    """Retrieve the PubMed record"""
     pmf = PubMedFetch(**opts)
 
     def _pubmed_citation_transformer(items):
@@ -138,6 +189,7 @@ def prediction_print_loader(predictions):
     for prediction in predictions:
         if prediction.classification == 1:
             count += 1
+            logger.info('Identified article with prob: {prob}', prob=prediction.probability)
             logger.info('Identified {count} positives', count=count)
 
 
@@ -145,19 +197,24 @@ def prediction_print_loader(predictions):
 #                 __main__
 ####################################################
 
-if __name__ == "__main__":
-    # args = parser.parse_args()
-    # print(args.echo)
+if __name__ == '__main__':
+    opts = get_opts()
+    print(f'retmax: {opts["retmax"]}')
+    print(f'threshold: {opts["threshold"]}')
 
-    by_evidences = lambda x: int(x["indra_statements_entity_constraint"]) > 1
+    # 106 620 articles w/ 'indra_statements_entity_constraint' > 1
+    by_evidences = lambda x: int(x['indra_statements_entity_constraint']) > 1
+
+
 
     pipeline = as_pipeline(
         [
             csv2dict_reader(sys.stdin),
             filter(by_evidences),
-            list_transformer("pmid"),
-            pubmed_citation_transformer(retmax=1000),
-            classification_transformer(),
+            list_transformer('pmid'),
+            pubmed_citation_transformer(retmax=opts['retmax']),
+            pubtype_filter,
+            classification_transformer(threshold=opts['threshold']),
             prediction_print_loader,
         ]
     )
