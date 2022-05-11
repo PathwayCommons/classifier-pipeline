@@ -119,6 +119,11 @@ def prediction_print_loader(predictions):
         document, classification, probability = prediction
         print(f'pmid: {document["pmid"]} -- classification: {classification} -- probability: {probability}')
 
+
+####################################################
+#                 __main__
+####################################################
+
 if __name__ == '__main__':
     # args = parser.parse_args()
     # print(args.echo)
@@ -129,7 +134,6 @@ if __name__ == '__main__':
         csv2dict_reader(sys.stdin),
         filter(by_evidences),
         list_transformer('pmid'),
-        # counter
         pubmed_citation_transformer(retmax = 1000),
         classification_transformer(),
         prediction_print_loader
