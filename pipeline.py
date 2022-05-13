@@ -214,8 +214,8 @@ if __name__ == '__main__':
             list_transformer(field=opts['idcolumn']),
             pubmed_transformer(type=opts['type']),
             pubtype_filter,
-            limit_filter(1000),
-            chunker(250),
+            limit_filter(100000),
+            chunker(1000),
             classification_transformer(threshold=opts['threshold']),
             prediction_print_loader
         ]
