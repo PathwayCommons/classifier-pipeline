@@ -1,1 +1,1 @@
-# classifier_workflow
+# classifier-pipeline
