@@ -1,7 +1,7 @@
 import csv
 import itertools
 import sys
-from ncbiutils.ncbiutils import PubMedFetch
+from ncbiutils.ncbiutils import PubMedFetch, PubMedDownload
 from pathway_abstract_classifier.pathway_abstract_classifier import Classifier
 from loguru import logger
 import time
@@ -16,12 +16,16 @@ default_threshold = 0.5
 parser = argparse.ArgumentParser()
 parser.add_argument('--retmax', nargs='?', type=int, default=str(retmax_limit))
 parser.add_argument('--threshold', nargs='?', type=float, default=str(default_threshold))
+parser.add_argument('--type', nargs='?', type=str, default='fetch')
+parser.add_argument('--idcolumn', nargs='?', type=str, default='pmid')
 
 def get_opts():
     args = parser.parse_args()
     opts = {
         'retmax': args.retmax,
-        'threshold': args.threshold
+        'threshold': args.threshold,
+        'type': args.type,
+        'idcolumn': args.idcolumn
     }
 
     if opts['retmax'] < 0:
@@ -35,8 +39,6 @@ def get_opts():
     return opts
 
 
-
-
 ####################################################
 #                 Pipeline
 ####################################################
@@ -47,24 +49,9 @@ def as_pipeline(steps):
         generator = step(generator)
     return generator
 
-
-####################################################
-#                  Utils
-####################################################
-
-list2generator = lambda x: (n for n in x)
-
-
-def counter(items):
-    item_list = list(items)
-    print(f'Number of items: {len(item_list)}')
-    return list2generator(item_list)
-
-
 ####################################################
 #                  Extract
 ####################################################
-
 
 def csv2dict_reader(stream):
     """Return a reader that streams csv to dicts"""
@@ -75,11 +62,9 @@ def csv2dict_reader(stream):
 
     return _csv2dict_reader()
 
-
 ####################################################
 #                  Filter
 ####################################################
-
 
 def filter(predicate):
     def _filter(items):
@@ -89,58 +74,55 @@ def filter(predicate):
 
     return _filter
 
-
-def limit_filter(number):
+def limit_filter(limit):
+    counter = 0
     def _limit(items):
-        yield from itertools.islice(items, number)
-
+        nonlocal counter
+        for item in items:
+            if counter == limit:
+                break
+            else:
+                counter += 1
+                yield item
     return _limit
 
-def pubtype_filter(chunks):
+def pubtype_filter(documents):
     """filter citations by publication types"""
-    pubtypes_to_exclude = [
+    pubtypes_to_exclude = set([
         'D016420',  # Comment
         'D016454',  # Review
         'D016440',  # Retraction of Publication
         'D016441',  # Retracted Publication
         'D016425',  # Published Erratum
-    ]
+    ])
+    pubtypes_to_include = set([
+        'D016428',  # Journal Article
+    ])
+    for document in documents:
+        excluded = False
+        pubtypes = set(document['publication_type_list'])
+        if len(pubtypes_to_exclude.intersection(pubtypes)) > 0:
+            excluded = True
+        if len(pubtypes_to_include.intersection(pubtypes)) == 0:
+            excluded = True
+        if not excluded:
+            yield document
 
-    for chunk in chunks:
-        error, citations, ids = chunk
-        if error is not None:
-            print(f'Error retrieving ids: {ids}')
-            continue
-        else:
-            articles = []
-            logger.info('Filter IN: {n}', n=len(ids))
-            documents = [c.dict() for c in citations]
-            for document in documents:
-                excluded = False
-                for pubtype in document['publication_type_list']:
-                    if pubtype in pubtypes_to_exclude:
-                        excluded = True
-                if not excluded:
-                    articles.append(document)
-            logger.info('Filter OUT: {n}', n=len(articles))
-            yield articles
-
-# @profile
 def classification_transformer(**opts):
     """Filter the chunks of articles based on text content"""
     classifier = Classifier(**opts)
 
     def _classification_transformer(chunks):
-        for articles in chunks:
-            logger.info('Classifying: {n}', n=len(articles))
+        for chunk in chunks:
+            logger.info('Classifying: {n}', n=len(chunk))
             start = time.time()
-            predictions = classifier.predict(articles)
+            prediction = classifier.predict(chunk)
             end = time.time()
             logger.info(
                 'Finished classification in {elapsed} seconds',
                 elapsed=(end - start),
             )
-            yield from predictions
+            yield from prediction
 
     return _classification_transformer
 
@@ -149,6 +131,24 @@ def classification_transformer(**opts):
 #                  Transform
 ####################################################
 
+def chunker(size):
+    """Aggregate items into chunks of a given size"""
+    def _chunker(items):
+        chunk = []
+        while True:
+            try:
+                if len(chunk) == size:
+                    yield chunk
+                    chunk = []
+                else:
+                    item = next(items)
+                    chunk.append(item)
+            except StopIteration:
+                if chunk:
+                    yield chunk
+                break
+
+    return _chunker
 
 def list_transformer(field):
     """Create a list from a field"""
@@ -159,38 +159,45 @@ def list_transformer(field):
 
     return _list_transformer
 
+def pubmed_transformer(type='fetch', **opts):
+    """Retrieve the PubMed records"""
+    pmt = PubMedDownload() if type == 'download' else PubMedFetch(**opts)
 
-def pubmed_citation_transformer(**opts):
-    """Retrieve the PubMed record"""
-    pmf = PubMedFetch(**opts)
+    def _pubmed_fetch_transformer(items):
+        chunks = pmt.get_citations(list(items))
+        for chunk in chunks:
+            error, citations, ids = chunk
+            if error is not None:
+                logger.error(f'Error retrieving ids: {ids}')
+                continue
+            else:
+                documents = [c.dict() for c in citations]
+                logger.info('Downloaded: {n}', n=len(documents))
+                yield from documents
 
-    def _pubmed_citation_transformer(items):
-        uids = list(items)
-        return pmf.get_citations(uids)
-
-    return _pubmed_citation_transformer
+    return _pubmed_fetch_transformer
 
 
 ####################################################
 #                  Load
 ####################################################
 
-
 def print_loader(items):
     for item in items:
-        print(item)
+        logger.info(len(item))
 
 def prediction_print_loader(predictions):
-    positives = [p for p in predictions if p.classification == 1]
-    logger.info('Identified {n} positives', n=positives)
+    tcount = 0
+    pcount = 0
+    for p in predictions:
+        tcount += 1
+        if p.classification == 1:
+            pcount += 1
+            logger.info('Positive {n} out of {t} analyzed ({rate}%) -- pmid: {pmid}; prob: {prob}',
+                        n=pcount, t=tcount, rate=pcount/tcount, pmid=p.document['pmid'] , prob=p.probability)
+    logger.info('Analyzed {tcount} articles', tcount=tcount)
+    logger.info('Identified {pcount} positives', pcount=pcount)
 
-def prediction_print_loader(predictions):
-    count = 0
-    for prediction in predictions:
-        if prediction.classification == 1:
-            count += 1
-            logger.info('Identified article with prob: {prob}', prob=prediction.probability)
-            logger.info('Identified {count} positives', count=count)
 
 
 ####################################################
@@ -199,22 +206,17 @@ def prediction_print_loader(predictions):
 
 if __name__ == '__main__':
     opts = get_opts()
-    print(f'retmax: {opts["retmax"]}')
-    print(f'threshold: {opts["threshold"]}')
-
-    # 106 620 articles w/ 'indra_statements_entity_constraint' > 1
-    by_evidences = lambda x: int(x['indra_statements_entity_constraint']) > 1
-
-
+    print(opts)
 
     pipeline = as_pipeline(
         [
             csv2dict_reader(sys.stdin),
-            filter(by_evidences),
-            list_transformer('pmid'),
-            pubmed_citation_transformer(retmax=opts['retmax']),
+            list_transformer(field=opts['idcolumn']),
+            pubmed_transformer(type=opts['type']),
             pubtype_filter,
+            limit_filter(1000),
+            chunker(250),
             classification_transformer(threshold=opts['threshold']),
-            prediction_print_loader,
+            prediction_print_loader
         ]
     )
