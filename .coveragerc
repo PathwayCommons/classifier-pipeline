@@ -1,0 +1,8 @@
+[run]
+omit =
+    # tests
+    tests/*
+    # streamlit app
+    **/app.py
+    # misc
+    **/__init__.py
