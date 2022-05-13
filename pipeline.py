@@ -1,5 +1,4 @@
 import csv
-import itertools
 import sys
 from ncbiutils.ncbiutils import PubMedFetch, PubMedDownload
 from pathway_abstract_classifier.pathway_abstract_classifier import Classifier
