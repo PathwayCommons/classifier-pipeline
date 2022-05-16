@@ -1,4 +1,5 @@
-# import csv
+import csv
+
 # import sys
 # from ncbiutils.ncbiutils import PubMedFetch, PubMedDownload
 # from pathway_abstract_classifier.pathway_abstract_classifier import Classifier
@@ -48,30 +49,34 @@
 #         generator = step(generator)
 #     return generator
 
-# ####################################################
-# #                  Extract
-# ####################################################
+####################################################
+#                  Extract
+####################################################
 
-# def csv2dict_reader(stream):
-#     """Return a reader that streams csv to dicts"""
 
-#     def _csv2dict_reader():
-#         reader = csv.DictReader(stream)
-#         yield from reader
+def csv2dict_reader(stream):
+    """Return a reader that streams csv to dicts"""
 
-#     return _csv2dict_reader()
+    def _csv2dict_reader():
+        reader = csv.DictReader(stream)
+        yield from reader
 
-# ####################################################
-# #                  Filter
-# ####################################################
+    return _csv2dict_reader()
 
-# def filter(predicate):
-#     def _filter(items):
-#         for item in items:
-#             if predicate(item):
-#                 yield item
 
-#     return _filter
+####################################################
+#                  Filter
+####################################################
+
+
+def filter(predicate):
+    def _filter(items):
+        for item in items:
+            if predicate(item):
+                yield item
+
+    return _filter
+
 
 # def limit_filter(limit):
 #     counter = 0
@@ -196,7 +201,6 @@
 #                         n=pcount, t=tcount, rate=pcount/tcount, pmid=p.document['pmid'] , prob=p.probability)
 #     logger.info('Analyzed {tcount} articles', tcount=tcount)
 #     logger.info('Identified {pcount} positives', pcount=pcount)
-
 
 
 # ####################################################
