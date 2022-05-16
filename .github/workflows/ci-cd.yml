@@ -1,0 +1,163 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: ci-cd
+
+on:
+  push:
+    branches: [ main, development ]
+  pull_request:
+    branches: [ main, development ]
+
+jobs:
+  ci:
+    #----------------------------------------------
+    #       os and python versions to test on
+    #----------------------------------------------
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: [3.8, 3.9]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      #----------------------------------------------
+      #       check-out repo and set-up python
+      #----------------------------------------------
+      - name: Set up Python ${{ matrix.python-version }}
+        id: setup-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Check-out repository
+        uses: actions/checkout@v2
+
+      #----------------------------------------------
+      #       use poetry to install packages
+      #----------------------------------------------
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.1.13
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      #----------------------------------------------
+      #       load cached venv if cache exists
+      #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      #----------------------------------------------
+      # install dependencies if cache does not exist
+      #----------------------------------------------
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      #----------------------------------------------
+      # install your root project, if required
+      #----------------------------------------------
+      - name: Install library
+        run: poetry install --no-interaction
+
+      #----------------------------------------------
+      #              run tests
+      #----------------------------------------------
+      - name: Format code
+        run: poetry run black ./classifier_pipeline
+
+      - name: Lint code
+        run: |
+          poetry run flake8 ./classifier_pipeline --count --select=E9,F63,F7,F82 --show-source --statistics
+          poetry run flake8 ./classifier_pipeline --count --exit-zero --max-complexity=10 --statistics
+
+      - name: Test with pytest
+        run: poetry run pytest tests --ignore-glob=tests/test_integration* --cov ./classifier_pipeline --cov-report=xml
+
+      - name: Type check with mypy
+        run: poetry run mypy . --cache-dir=/dev/null
+
+      #----------------------------------------------
+      #              reporting
+      #----------------------------------------------
+
+      - name: Use Codecov to track coverage
+        if: matrix.python-version == '3.8' && matrix.os == 'ubuntu-latest'  && (github.event_name == 'push' || github.event_name == 'pull_request')
+        uses: codecov/codecov-action@v2
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  # cd:
+  #   # Only run this job if the "ci" job passes
+  #   needs: ci
+
+  #   # Only run this job if new work is merged into the "main" branch
+  #   if: (github.event_name == 'push' || github.event.pull_request.merged == true) && github.ref == 'refs/heads/main'
+
+  #   #----------------------------------------------
+  #   #       os and python versions to test on
+  #   #----------------------------------------------
+  #   runs-on: ubuntu-latest
+
+  #   # Define job steps
+  #   steps:
+  #     #----------------------------------------------
+  #     #       check-out repo and set-up python
+  #     #----------------------------------------------
+  #     - name: Set up Python 3.8
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: 3.8
+
+  #     - name: Check-out repository
+  #       uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+
+  #     #----------------------------------------------
+  #     #       Install Poetry and PSR
+  #     #----------------------------------------------
+  #     - name: Install poetry
+  #       uses: snok/install-poetry@v1
+
+  #     - name: Install package
+  #       run: poetry install --no-interaction
+
+  #     - name: Use Python Semantic Release to prepare release
+  #       env:
+  #         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       run: |
+  #           git config user.name github-actions
+  #           git config user.email github-actions@github.com
+  #           poetry run semantic-release publish
+
+  #     #----------------------------------------------
+  #     #       Publish to TestPyPI and check
+  #     #----------------------------------------------
+  #     - name: Publish to TestPyPI
+  #       uses: pypa/gh-action-pypi-publish@release/v1
+  #       with:
+  #         user: __token__
+  #         password: ${{ secrets.TEST_PYPI_API_TOKEN_NCBI }}
+  #         repository_url: https://test.pypi.org/legacy/
+
+  #     - name: Test install from TestPyPI
+  #       run: |
+  #           pip install \
+  #           --index-url https://test.pypi.org/simple/ \
+  #           --extra-index-url https://pypi.org/simple \
+  #           classifier-pipeline
+
+  #     - name: Publish to PyPI
+  #       uses: pypa/gh-action-pypi-publish@release/v1
+  #       with:
+  #         user: __token__
+  #         password: ${{ secrets.PYPI_API_TOKEN_NCBI }}
