@@ -1,4 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
 name: ci-cd
@@ -16,9 +16,8 @@ jobs:
     #----------------------------------------------
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
         python-version: [3.8, 3.9]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       #----------------------------------------------
@@ -79,7 +78,7 @@ jobs:
           poetry run flake8 ./classifier_pipeline --count --exit-zero --max-complexity=10 --statistics
 
       - name: Test with pytest
-        run: poetry run pytest tests --ignore-glob=tests/test_integration* --cov ./classifier_pipeline --cov-report=xml
+        run: poetry run pytest tests --cov=classifier_pipeline --cov-config=.coveragerc --cov-report=xml
 
       - name: Type check with mypy
         run: poetry run mypy . --cache-dir=/dev/null
@@ -146,7 +145,7 @@ jobs:
   #       uses: pypa/gh-action-pypi-publish@release/v1
   #       with:
   #         user: __token__
-  #         password: ${{ secrets.TEST_PYPI_API_TOKEN_NCBI }}
+  #         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
   #         repository_url: https://test.pypi.org/legacy/
 
   #     - name: Test install from TestPyPI
@@ -160,4 +159,4 @@ jobs:
   #       uses: pypa/gh-action-pypi-publish@release/v1
   #       with:
   #         user: __token__
-  #         password: ${{ secrets.PYPI_API_TOKEN_NCBI }}
+  #         password: ${{ secrets.PYPI_API_TOKEN }}
