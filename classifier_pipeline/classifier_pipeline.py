@@ -36,8 +36,6 @@ def citation_pubtype_filter(citations: Generator[Citation, None, None]) -> Gener
             excluded = True
         if not excluded:
             yield citation
-        else:
-            logger.warning('excluding {pmid}', pmid=citation.pmid)
 
 
 ####################################################
