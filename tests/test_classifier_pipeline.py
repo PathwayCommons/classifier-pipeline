@@ -1,6 +1,13 @@
 import pytest
-from classifier_pipeline.classifier_pipeline import csv2dict_reader, filter, limit_filter, list_transformer, chunker
-
+from classifier_pipeline.classifier_pipeline import (
+    csv2dict_reader,
+    filter,
+    limit_filter,
+    list_transformer,
+    chunker,
+    citation_pubtype_filter
+    )
+from ncbiutils.pubmedxmlparser import Citation
 
 @pytest.fixture
 def numeric_items():
@@ -18,6 +25,13 @@ def dict_items():
 def updatefiles_stream(shared_datadir):
     return (shared_datadir / 'updatefiles.csv').open()
 
+
+@pytest.fixture
+def citation_items():
+    c_article = Citation(pmid='pmid1', title='title1', journal={}, publication_type_list=['D016428'])
+    c_review = Citation(pmid='pmid2', title='title2', journal={}, publication_type_list=['D016454', 'D016428'])
+    c_cookbook = Citation(pmid='pmid3', title='title3', journal={}, publication_type_list=['D055823'])
+    return (c for c in [c_article, c_review, c_cookbook])
 
 ####################################################
 #                  Extract
@@ -50,6 +64,12 @@ def test_limit_filter(numeric_items):
     items = limit_filter(limit)(numeric_items)
     results = list(items)
     assert len(results) == limit
+
+
+def test_pubtype_filter(citation_items):
+    citations = list(citation_pubtype_filter(citation_items))
+    assert len(citations) == 1
+    assert citations[0].pmid == 'pmid1'
 
 
 ####################################################
