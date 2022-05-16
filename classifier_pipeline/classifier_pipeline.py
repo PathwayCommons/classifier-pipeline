@@ -78,17 +78,20 @@ def filter(predicate):
     return _filter
 
 
-# def limit_filter(limit):
-#     counter = 0
-#     def _limit(items):
-#         nonlocal counter
-#         for item in items:
-#             if counter == limit:
-#                 break
-#             else:
-#                 counter += 1
-#                 yield item
-#     return _limit
+def limit_filter(limit):
+    counter = 0
+
+    def _limit(items):
+        nonlocal counter
+        for item in items:
+            if counter == limit:
+                break
+            else:
+                counter += 1
+                yield item
+
+    return _limit
+
 
 # def pubtype_filter(documents):
 #     """filter citations by publication types"""
@@ -131,37 +134,41 @@ def filter(predicate):
 #     return _classification_transformer
 
 
-# ####################################################
-# #                  Transform
-# ####################################################
+####################################################
+#                  Transform
+####################################################
 
-# def chunker(size):
-#     """Aggregate items into chunks of a given size"""
-#     def _chunker(items):
-#         chunk = []
-#         while True:
-#             try:
-#                 if len(chunk) == size:
-#                     yield chunk
-#                     chunk = []
-#                 else:
-#                     item = next(items)
-#                     chunk.append(item)
-#             except StopIteration:
-#                 if chunk:
-#                     yield chunk
-#                 break
 
-#     return _chunker
+def chunker(size):
+    """Aggregate items into chunks of a given size"""
 
-# def list_transformer(field):
-#     """Create a list from a field"""
+    def _chunker(items):
+        chunk = []
+        while True:
+            try:
+                if len(chunk) == size:
+                    yield chunk
+                    chunk = []
+                else:
+                    item = next(items)
+                    chunk.append(item)
+            except StopIteration:
+                if chunk:
+                    yield chunk
+                break
 
-#     def _list_transformer(items):
-#         for item in items:
-#             yield item[field]
+    return _chunker
 
-#     return _list_transformer
+
+def list_transformer(field):
+    """Create a list from a field"""
+
+    def _list_transformer(items):
+        for item in items:
+            yield item[field]
+
+    return _list_transformer
+
 
 # def pubmed_transformer(type='fetch', **opts):
 #     """Retrieve the PubMed records"""
