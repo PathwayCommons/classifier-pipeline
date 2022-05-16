@@ -1,4 +1,4 @@
-from typing import Callable, Any, Generator, List
+from typing import Callable, Generator, List
 from ncbiutils.ncbiutils import PubMedFetch, PubMedDownload
 from ncbiutils.pubmedxmlparser import Citation
 from pathway_abstract_classifier.pathway_abstract_classifier import Classifier, Prediction

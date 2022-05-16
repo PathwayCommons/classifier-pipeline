@@ -1,5 +1,5 @@
 import pytest
-from classifier_pipeline.utils import csv2dict_reader, filter, limit_filter, list_transformer, chunker
+from classifier_pipeline.utils import csv2dict_reader, filter, limit_filter, list_transformer, chunker, as_pipeline
 
 
 @pytest.fixture
@@ -17,6 +17,16 @@ def dict_items():
 @pytest.fixture
 def updatefiles_stream(shared_datadir):
     return (shared_datadir / 'updatefiles.csv').open()
+
+####################################################
+#                  Pipeline
+####################################################
+
+
+def test_as_pipeline():
+    afunc = lambda x: x
+    result = as_pipeline([afunc])
+    assert result == afunc
 
 
 ####################################################
