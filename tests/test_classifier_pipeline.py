@@ -5,9 +5,10 @@ from classifier_pipeline.classifier_pipeline import (
     limit_filter,
     list_transformer,
     chunker,
-    citation_pubtype_filter
-    )
+    citation_pubtype_filter,
+)
 from ncbiutils.pubmedxmlparser import Citation
+
 
 @pytest.fixture
 def numeric_items():
@@ -32,6 +33,7 @@ def citation_items():
     c_review = Citation(pmid='pmid2', title='title2', journal={}, publication_type_list=['D016454', 'D016428'])
     c_cookbook = Citation(pmid='pmid3', title='title3', journal={}, publication_type_list=['D055823'])
     return (c for c in [c_article, c_review, c_cookbook])
+
 
 ####################################################
 #                  Extract
