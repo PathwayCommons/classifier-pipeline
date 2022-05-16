@@ -18,6 +18,7 @@ def dict_items():
 def updatefiles_stream(shared_datadir):
     return (shared_datadir / 'updatefiles.csv').open()
 
+
 ####################################################
 #                  Pipeline
 ####################################################

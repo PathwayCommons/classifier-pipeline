@@ -2,7 +2,5 @@
 omit =
     # tests
     tests/*
-    # pipeline
-    **/pipeline.py
     # misc
     **/__init__.py
