@@ -75,12 +75,12 @@ if __name__ == '__main__':
     pipeline = as_pipeline(
         [
             csv2dict_reader(sys.stdin),
-            list_transformer(field='pmid'),
+            list_transformer(field=opts['idcolumn']),
             pubmed_transformer(type=opts['type']),
             citation_pubtype_filter,
-            limit_filter(1000),
-            chunker(100),
+            limit_filter(10000),
+            chunker(1000),
             classification_transformer(threshold=opts['threshold']),
-            prediction_print_loader,
+            prediction_print_loader
         ]
     )
