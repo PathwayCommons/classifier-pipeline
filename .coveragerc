@@ -2,7 +2,7 @@
 omit =
     # tests
     tests/*
-    # streamlit app
-    **/app.py
+    # pipeline
+    **/pipeline.py
     # misc
     **/__init__.py
