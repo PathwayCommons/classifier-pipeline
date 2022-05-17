@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  db:
+    image: rethinkdb:${RETHINKDB_IMAGE_TAG:-2.3.7}
+    restart: unless-stopped
+    container_name: db
+    mem_limit: ${DB_CONTAINER_MEMORY_LIMIT:-1000000000}
+    ports:
+      - "8080:8080"
+      - "28015:28015"
+      - "29015:29015"
+    volumes:
+      - db-data:/data
+    networks:
+      - classifier-pipeline-network
+    command: ["rethinkdb", "--bind", "all", "--cache-size", "${RETHINKDB_CACHE_SIZE:-1024}"]
+
+volumes:
+  db-data:
+
+networks:
+  classifier-pipeline-network:
+    driver: bridge
