@@ -66,7 +66,6 @@ class Db(BaseModel):
 
     def _connect(self):
         conn = None
-        print(self._conn)
         if self._conn is not None:
             conn = self._conn
         else:
