@@ -29,11 +29,13 @@ parser.add_argument('--retmax', nargs='?', type=int, default=str(retmax_limit))
 parser.add_argument('--threshold', nargs='?', type=float, default=str(default_threshold))
 parser.add_argument('--type', nargs='?', type=str, default='fetch')
 parser.add_argument('--idcolumn', nargs='?', type=str, default='pmid')
+parser.add_argument('--table', nargs='?', type=str, default='articles')
+
 
 
 def get_opts():
     args = parser.parse_args()
-    opts = {'retmax': args.retmax, 'threshold': args.threshold, 'type': args.type, 'idcolumn': args.idcolumn}
+    opts = {'retmax': args.retmax, 'threshold': args.threshold, 'type': args.type, 'idcolumn': args.idcolumn, 'table': args.table}
 
     if opts['retmax'] < 0:
         raise ValueError('retmax must be non-negative')
@@ -97,7 +99,7 @@ if __name__ == '__main__':
             prediction_print_spy,
             filter(lambda x: x.classification == 1),
             prediction_db_transformer(),
-            db_loader(table_name='articles'),
+            db_loader(table_name=opts['table']),
             exhaust,
         ]
     )
