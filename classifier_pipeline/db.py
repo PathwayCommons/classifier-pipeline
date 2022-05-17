@@ -35,6 +35,8 @@ class Db(BaseModel):
     ----------
     access_table() -> Table:
         Provide for a database table if it doesn't already exist
+    set(table_name: str, data: Dict[str, Any]) -> Dict[str, Any]
+        Either insert the document or replace it if the id exists
     """
 
     _r: Any = PrivateAttr()
@@ -92,10 +94,16 @@ class Db(BaseModel):
 
     def set(self, table_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
         set_result = None
+        exists = False
+        id = None
         _, conn, _, table = self._guarantee_table(table_name)
-        id = data['id']
-        result = table.get(id).run(conn)
-        if result is not None:
+
+        if 'id' in data:
+            id = data['id']
+            result = table.get(id).run(conn)
+            if result is not None:
+                exists = True
+        if exists:
             set_result = table.get(id).replace(data).run(conn)
         else:
             set_result = table.insert(data).run(conn)
