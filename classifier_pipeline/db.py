@@ -35,8 +35,17 @@ class Db(BaseModel):
     ----------
     access_table() -> Table:
         Provide for a database table if it doesn't already exist
-    set(table_name: str, data: Dict[str, Any]) -> Dict[str, Any]
-        Either insert the document or replace it if the id exists
+    set(table_name: str, data: Dict[str, Any]) -> Dict[str, int]
+        Either insert the document or replace it if the id exists and return status flags
+        {
+            "deleted": int,
+            "errors": int,
+            "inserted": int,
+            "replaced": int,
+            "skipped": int,
+            "unchanged": int
+        }
+        see https://rethinkdb.com/api/python/insert; https://rethinkdb.com/api/python/replace
     """
 
     _r: Any = PrivateAttr()
@@ -92,7 +101,7 @@ class Db(BaseModel):
     def access_table(self, table_name: str) -> Table:
         return self._guarantee_table(table_name)
 
-    def set(self, table_name: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    def set(self, table_name: str, data: Dict[str, Any]) -> Dict[str, int]:
         set_result = None
         exists = False
         id = None

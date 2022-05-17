@@ -10,7 +10,7 @@ def numeric_items():
 
 @pytest.fixture
 def dict_items():
-    items = [{'field1': 1, 'field2': 2}, {'field1': 3, 'field2': 4}]
+    items = [{'id': '1', 'field1': 1, 'field2': 2}, {'id': '2',  'field1': 3, 'field2': 4}]
     return (item for item in items)
 
 

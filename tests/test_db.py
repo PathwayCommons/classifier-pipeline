@@ -1,9 +1,15 @@
-# import pytest
+import pytest
 from classifier_pipeline.db import Db
 from rethinkdb import RethinkDB
+from classifier_pipeline.utils import db_loader
+# from collections import deque
 
 r = RethinkDB()
 
+@pytest.fixture
+def dict_items():
+    items = [{'id': '1', 'field1': 1, 'field2': 2}, {'id': '2',  'field1': 3, 'field2': 4}]
+    return (item for item in items)
 
 class TestDbInstance:
     db = Db(db_name='test')
@@ -38,3 +44,14 @@ class TestDbInstance:
         self.db.set(table_name, update)
         found_update = table.get(update['id']).run(conn)
         assert found_update['field1'] == update['field1']
+
+
+####################################################
+#                  Load
+####################################################
+
+
+def test_db_loader(dict_items):
+    results = db_loader(table_name='test')(dict_items)
+    for result in results:
+            assert result is not None
