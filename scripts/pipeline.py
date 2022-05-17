@@ -6,7 +6,6 @@ from classifier_pipeline.utils import (
     as_pipeline,
     csv2dict_reader,
     list_transformer,
-    limit_filter,
     chunker,
     db_loader,
     filter,
