@@ -22,6 +22,8 @@ python = ">=3.8,<3.10"
 ncbiutils = "^0.5.0"
 loguru = "^0.6.0"
 pathway-abstract-classifier = "^0.2.1"
+pydantic = "^1.9.0"
+rethinkdb = "^2.4.9"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

@@ -81,6 +81,6 @@ if __name__ == '__main__':
             limit_filter(10000),
             chunker(1000),
             classification_transformer(threshold=opts['threshold']),
-            prediction_print_loader
+            prediction_print_loader,
         ]
     )
