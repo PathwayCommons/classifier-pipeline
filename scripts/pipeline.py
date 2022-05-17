@@ -47,20 +47,15 @@ def get_opts():
 
 
 ####################################################
-#                  Load
+#                  Helpers
 ####################################################
-
-
-def print_loader(items):
-    for item in items:
-        logger.info(item)
 
 
 def exhaust(generator):
     deque(generator, maxlen=0)
 
 
-def prediction_print_loader(predictions):
+def prediction_print_spy(predictions):
     tcount = 0
     pcount = 0
     tprobability = 0
@@ -70,7 +65,8 @@ def prediction_print_loader(predictions):
             pcount += 1
             tprobability += p.probability
             logger.info(
-                'Counted {n} hits out of {t} ({rate:.3g}%) -- pmid: {pmid} -- prob={prob:.3g}, mean={mu:.3g}',
+                'Identified {n} hits from {t} tested ({rate:.3g}%);'
+                'mean probability: {mu:.3g} --- pmid: {pmid}; prob={prob:.3g}',
                 n=pcount,
                 t=tcount,
                 rate=pcount / tcount,
@@ -98,7 +94,7 @@ if __name__ == '__main__':
             limit_filter(100),
             chunker(25),
             classification_transformer(threshold=opts['threshold']),
-            prediction_print_loader,
+            prediction_print_spy,
             filter(lambda x: x.classification == 1),
             prediction_db_transformer(),
             db_loader(table_name='articles'),
