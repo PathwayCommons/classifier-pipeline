@@ -99,7 +99,9 @@ def list_transformer(field: str) -> Callable[[Generator[Any, None, None]], Gener
 ####################################################
 
 
-def db_loader(table_name: str, host: str = 'localhost', port:int = 28015, username:str = 'admin', password: str = ''):
+def db_loader(
+    table_name: str, host: str = 'localhost', port: int = 28015, username: str = 'admin', password: str = ''
+):
     """Insert (or replace) items in the named database table"""
     database = db.Db(host=host, port=port, username=username, password=password)
 

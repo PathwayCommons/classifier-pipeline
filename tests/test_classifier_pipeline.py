@@ -3,6 +3,7 @@ from classifier_pipeline.classifier_pipeline import (
     citation_pubtype_filter,
     classification_transformer,
     pubmed_transformer,
+    prediction_db_transformer,
 )
 from ncbiutils.pubmedxmlparser import Citation
 from pathway_abstract_classifier.pathway_abstract_classifier import Prediction
@@ -28,7 +29,9 @@ def citation_chunks():
 @pytest.fixture
 def prediction_items():
     c_as_dicts = [c.dict() for c in citations]
-    return (Prediction(document=c, classification=0, probability=0.5) for c in c_as_dicts)
+    p0 = Prediction(document=c_as_dicts[0], classification=1, probability=1)
+    p1 = Prediction(document=c_as_dicts[1], classification=1, probability=1)
+    return (p for p in [p0, p1])
 
 
 @pytest.fixture
@@ -63,10 +66,16 @@ def test_classification_transformer(mocker, citation_chunks, prediction_items):
     predictions = classification_transformer()(citation_chunks)
     p_list = list(predictions)
     assert p_list is not None
-    assert len(p_list) == 3
+    assert len(p_list) == 2
 
 
 def test_pubmed_transformer(mocker, uid_items, citations_chunks):
     mocker.patch('classifier_pipeline.classifier_pipeline.PubMedFetch.get_citations', return_value=citations_chunks)
     citations = list(pubmed_transformer()(uid_items))
     assert len(citations) == 3
+
+
+def test_prediction_db_transformer(prediction_items):
+    formatted = list(prediction_db_transformer()(prediction_items))
+    for item in formatted:
+        assert 'id' in item

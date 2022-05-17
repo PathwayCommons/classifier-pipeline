@@ -1,4 +1,4 @@
-from typing import Callable, Generator, List
+from typing import Callable, Generator, List, Dict, Any
 from ncbiutils.ncbiutils import PubMedFetch, PubMedDownload
 from ncbiutils.pubmedxmlparser import Citation
 from pathway_abstract_classifier.pathway_abstract_classifier import Classifier, Prediction
@@ -56,7 +56,7 @@ def classification_transformer(
             prediction = classifier.predict([c.dict() for c in chunk])
             end = time.time()
             logger.info(
-                'Finished classification in {elapsed} seconds',
+                'Finished classification in {elapsed:.3g} seconds',
                 elapsed=(end - start),
             )
             yield from prediction
@@ -82,3 +82,19 @@ def pubmed_transformer(
                 yield from citations
 
     return _pubmed_fetch_transformer
+
+
+def prediction_db_transformer() -> Callable[
+    [Generator[Prediction, None, None]], Generator[Dict[str, Any], None, None]
+]:
+    """Format prediction so it can be inserted into database"""
+
+    def _prediction_db_transformer(
+        predictions: Generator[Prediction, None, None]
+    ) -> Generator[Dict[str, Any], None, None]:
+        for prediction in predictions:
+            document, classification, probability = prediction
+            document.update({'id': document['pmid'], 'classification': classification, 'probability': probability})
+            yield document
+
+    return _prediction_db_transformer

@@ -1,12 +1,23 @@
 import sys
 from loguru import logger
 import argparse
-from classifier_pipeline.utils import as_pipeline, csv2dict_reader, list_transformer, limit_filter, chunker
+from collections import deque
+from classifier_pipeline.utils import (
+    as_pipeline,
+    csv2dict_reader,
+    list_transformer,
+    limit_filter,
+    chunker,
+    db_loader,
+    filter,
+)
 from classifier_pipeline.classifier_pipeline import (
     pubmed_transformer,
     citation_pubtype_filter,
     classification_transformer,
+    prediction_db_transformer,
 )
+
 
 ####################################################
 #            Command line args
@@ -42,26 +53,32 @@ def get_opts():
 
 def print_loader(items):
     for item in items:
-        logger.info(len(item))
+        logger.info(item)
+
+
+def exhaust(generator):
+    deque(generator, maxlen=0)
 
 
 def prediction_print_loader(predictions):
     tcount = 0
     pcount = 0
+    tprobability = 0
     for p in predictions:
         tcount += 1
         if p.classification == 1:
             pcount += 1
+            tprobability += p.probability
             logger.info(
-                'Positive {n} out of {t} analyzed ({rate}%) -- pmid: {pmid}; prob: {prob}',
+                'Counted {n} hits out of {t} ({rate:.3g}%) -- pmid: {pmid} -- prob={prob:.3g}, mean={mu:.3g}',
                 n=pcount,
                 t=tcount,
                 rate=pcount / tcount,
                 pmid=p.document['pmid'],
                 prob=p.probability,
+                mu=tprobability / pcount,
             )
-    logger.info('Analyzed {tcount} articles', tcount=tcount)
-    logger.info('Identified {pcount} positives', pcount=pcount)
+        yield p
 
 
 ####################################################
@@ -78,9 +95,13 @@ if __name__ == '__main__':
             list_transformer(field=opts['idcolumn']),
             pubmed_transformer(type=opts['type']),
             citation_pubtype_filter,
-            limit_filter(10000),
-            chunker(1000),
+            limit_filter(100),
+            chunker(25),
             classification_transformer(threshold=opts['threshold']),
             prediction_print_loader,
+            filter(lambda x: x.classification == 1),
+            prediction_db_transformer(),
+            db_loader(table_name='articles'),
+            exhaust,
         ]
     )
