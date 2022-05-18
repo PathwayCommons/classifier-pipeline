@@ -9,6 +9,11 @@ echo "Starting ${JOB_NAME} within environment ${CONDA_ENV}"
 WORKING_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 CONDA_BASE=$(conda info --base)
 
+# stop the old screen session
+echo "Quitting old screen session..."
+screen -S $JOB_NAME -X -p 0 stuff ^C && echo "Sent ^C" || echo "No screen session to ^C"
+screen -S $JOB_NAME -X quit && echo "Quit old screen session" || echo "No screen session to stop"
+
 ### start a database if not already
 if [[ -z $(docker-compose ls -aq) ]]; then
   echo "Start the database instance"
