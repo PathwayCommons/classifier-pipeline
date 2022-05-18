@@ -15,6 +15,7 @@ from classifier_pipeline.classifier_pipeline import (
     citation_pubtype_filter,
     classification_transformer,
     prediction_db_transformer,
+    citation_date_filter,
 )
 
 
@@ -31,10 +32,15 @@ parser.add_argument('--idcolumn', nargs='?', type=str, default='pmid')
 parser.add_argument('--table', nargs='?', type=str, default='articles')
 
 
-
 def get_opts():
     args = parser.parse_args()
-    opts = {'retmax': args.retmax, 'threshold': args.threshold, 'type': args.type, 'idcolumn': args.idcolumn, 'table': args.table}
+    opts = {
+        'retmax': args.retmax,
+        'threshold': args.threshold,
+        'type': args.type,
+        'idcolumn': args.idcolumn,
+        'table': args.table,
+    }
 
     if opts['retmax'] < 0:
         raise ValueError('retmax must be non-negative')
@@ -92,6 +98,7 @@ if __name__ == '__main__':
             list_transformer(field=opts['idcolumn']),
             pubmed_transformer(type=opts['type']),
             citation_pubtype_filter,
+            citation_date_filter(2021),
             chunker(1000),
             classification_transformer(threshold=opts['threshold']),
             prediction_print_spy,

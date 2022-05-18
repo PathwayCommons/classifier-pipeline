@@ -4,15 +4,22 @@ from classifier_pipeline.classifier_pipeline import (
     classification_transformer,
     pubmed_transformer,
     prediction_db_transformer,
+    citation_date_filter,
 )
 from ncbiutils.pubmedxmlparser import Citation
 from pathway_abstract_classifier.pathway_abstract_classifier import Prediction
 
 uids = ('1', '2', '3')
 citations = (
-    Citation(pmid='1', title='title1', abstract='', journal={}, publication_type_list=['D016428']),
-    Citation(pmid='2', title='title2', abstract='', journal={}, publication_type_list=['D016454', 'D016428']),
-    Citation(pmid='3', title='title3', abstract='', journal={}, publication_type_list=['D055823']),
+    Citation(pmid='1', title='title1', abstract='', journal={'pub_year': None}, publication_type_list=['D016428']),
+    Citation(
+        pmid='2',
+        title='title2',
+        abstract='',
+        journal={'pub_year': '1997'},
+        publication_type_list=['D016454', 'D016428'],
+    ),
+    Citation(pmid='3', title='title3', abstract='', journal={'pub_year': '2022'}, publication_type_list=['D055823']),
 )
 
 
@@ -51,9 +58,13 @@ def citations_chunks():
 
 
 def test_citation_pubtype_filter(citation_items):
-    citations = list(citation_pubtype_filter(citation_items))
+    results = list(citation_pubtype_filter(citation_items))
+    assert len(results) == 1
+
+
+def test_citation_date_filter(citation_items):
+    citations = list(citation_date_filter(2021)(citation_items))
     assert len(citations) == 1
-    assert citations[0].pmid == uids[0]
 
 
 ####################################################
