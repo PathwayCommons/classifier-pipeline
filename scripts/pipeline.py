@@ -70,7 +70,7 @@ def prediction_print_spy(predictions):
                 'mean probability: {mu:.3g} --- pmid: {pmid}; prob={prob:.3g}',
                 n=pcount,
                 t=tcount,
-                rate=pcount / tcount,
+                rate=100 * (pcount / tcount),
                 pmid=p.document['pmid'],
                 prob=p.probability,
                 mu=tprobability / pcount,
