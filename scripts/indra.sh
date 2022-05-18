@@ -16,7 +16,7 @@ set -a
     # pipeline.py script arguments
     ARG_TYPE="fetch"
     ARG_IDCOLUMN="pmid"
-    ARG_TABLE="indra"
+    ARG_TABLE="documents"
     ARG_THRESHOLD="0.990"
 
     # source data and logging output

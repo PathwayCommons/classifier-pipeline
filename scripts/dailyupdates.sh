@@ -16,7 +16,7 @@ set -a
     # pipeline.py script arguments
     ARG_TYPE="download"
     ARG_IDCOLUMN="filename"
-    ARG_TABLE="pubmed"
+    ARG_TABLE="documents"
     ARG_THRESHOLD="0.990"
 
     # source data and logging output
