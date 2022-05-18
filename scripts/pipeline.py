@@ -30,6 +30,7 @@ parser.add_argument('--threshold', nargs='?', type=float, default=str(default_th
 parser.add_argument('--type', nargs='?', type=str, default='fetch')
 parser.add_argument('--idcolumn', nargs='?', type=str, default='pmid')
 parser.add_argument('--table', nargs='?', type=str, default='articles')
+parser.add_argument('--minyear', nargs='?', type=int)
 
 
 def get_opts():
@@ -40,6 +41,7 @@ def get_opts():
         'type': args.type,
         'idcolumn': args.idcolumn,
         'table': args.table,
+        'minyear': args.minyear
     }
 
     if opts['retmax'] < 0:
@@ -48,6 +50,9 @@ def get_opts():
         opts['retmax'] = retmax_limit
 
     if opts['threshold'] < 0 or opts['threshold'] > 1:
+        raise ValueError('threshold must be on [0, 1]')
+
+    if opts['minyear'] == 'None':
         raise ValueError('threshold must be on [0, 1]')
 
     return opts
@@ -98,7 +103,7 @@ if __name__ == '__main__':
             list_transformer(field=opts['idcolumn']),
             pubmed_transformer(type=opts['type']),
             citation_pubtype_filter,
-            citation_date_filter(2021),
+            citation_date_filter(opts['minyear']),
             chunker(1000),
             classification_transformer(threshold=opts['threshold']),
             prediction_print_spy,

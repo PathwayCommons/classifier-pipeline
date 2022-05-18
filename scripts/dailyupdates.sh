@@ -18,6 +18,8 @@ set -a
     ARG_IDCOLUMN="filename"
     ARG_TABLE="documents"
     ARG_THRESHOLD="0.990"
+    ARG_MINYEAR="2021"
+
 
     # source data and logging output
     DATA_PATH="${WORKING_DIR}/${DATA_DIR}/${DATA_FILE}"

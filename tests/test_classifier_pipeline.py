@@ -66,6 +66,10 @@ def test_citation_date_filter(citation_items):
     citations = list(citation_date_filter(2021)(citation_items))
     assert len(citations) == 1
 
+def test_citation_date_filter_disabled(citation_items):
+    citations = list(citation_date_filter()(citation_items))
+    assert len(citations) == 3
+
 
 ####################################################
 #                  Transform

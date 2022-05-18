@@ -39,16 +39,18 @@ def citation_pubtype_filter(citations: Generator[Citation, None, None]) -> Gener
 
 
 def citation_date_filter(
-    min_year: int,
+    min_year: int = None
 ) -> Callable[[Generator[Citation, None, None]], Generator[Citation, None, None]]:
     """filter citations by publication date"""
-
     def _citation_date_filter(citations):
         for citation in citations:
             try:
-                year = citation.journal.pub_year
-                if year is not None and int(year) >= min_year:
+                if min_year is None:
                     yield citation
+                else:
+                    year = citation.journal.pub_year
+                    if year is not None and int(year) >= min_year:
+                        yield citation
             except ValueError:
                 logger.info('Could not identify publication year')
                 continue

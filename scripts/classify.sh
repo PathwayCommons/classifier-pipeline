@@ -25,11 +25,25 @@ source ${CONDA_BASE}/etc/profile.d/conda.sh
 conda activate ${CONDA_ENV}
 
 ### run the script in a new screen session
+PIPELINE_ARGS=""
+
+if [ ${ARG_TYPE} ]; then
+    PIPELINE_ARGS+=" --type ${ARG_TYPE}"
+fi
+if [ ${ARG_IDCOLUMN} ]; then
+    PIPELINE_ARGS+=" --idcolumn ${ARG_IDCOLUMN}"
+fi
+if [ ${ARG_TABLE} ]; then
+    PIPELINE_ARGS+=" --table ${ARG_TABLE}"
+fi
+if [ ${ARG_THRESHOLD} ]; then
+    PIPELINE_ARGS+=" --threshold ${ARG_THRESHOLD}"
+fi
+if [ ${ARG_MINYEAR} ]; then
+    PIPELINE_ARGS+=" --minyear ${ARG_MINYEAR}"
+fi
+
 echo "Starting new screen session..."
-screen -d -m -S $JOB_NAME bash -c "python pipeline.py \
-                                       --type ${ARG_TYPE} \
-                                       --idcolumn ${ARG_IDCOLUMN} \
-                                       --table ${ARG_TABLE} \
-                                       --threshold ${ARG_THRESHOLD} \
-                                   < ${DATA_PATH} 2>&1 | tee ${LOG_PATH}"
+echo "PIPELINE_ARGS: ${PIPELINE_ARGS}"
+screen -d -m -S $JOB_NAME bash -c "python pipeline.py${PIPELINE_ARGS} < ${DATA_PATH} 2>&1 | tee ${LOG_PATH}"
 
