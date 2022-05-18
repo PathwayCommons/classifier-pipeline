@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   db:
-    image: rethinkdb:${RETHINKDB_IMAGE_TAG:-2.3.7}
+    image: pathwaycommons/rethinkdb-docker:${RETHINKDB_IMAGE_TAG:-0.1.0}
     restart: unless-stopped
     container_name: db
     ports:

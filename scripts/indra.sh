@@ -1,23 +1,27 @@
 #!/bin/bash
 
-# Download from PubMed and classify
+# Use this script to run the classifier pipeline
 
+# Local variables
 WORKING_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
-export CONDA_ENV="flow"
-export JOB_NAME="indra-classification"
-
-# pipeline.py arguments
-export ARG_TYPE="fetch"
-export ARG_IDCOLUMN="pmid"
-export ARG_TABLE="indra"
-export ARG_THRESHOLD="0.990"
-
-# data file
 DATA_DIR="data"
 DATA_FILE="pmid_indra_counts_hasStatement_lite.csv"
-LOG_FILE="pmid_indra_counts_hasStatement.log"
-export DATA_PATH="${WORKING_DIR}/${DATA_DIR}/${DATA_FILE}"
-export LOG_PATH="${WORKING_DIR}/${DATA_DIR}/${LOG_FILE}"
+LOG_FILE="pmid_indra_counts_hasStatement_lite.log"
+
+# Environment variables
+set -a
+    JOB_NAME="indra_classification"
+    CONDA_ENV="pipeline"
+
+    # pipeline.py script arguments
+    ARG_TYPE="fetch"
+    ARG_IDCOLUMN="pmid"
+    ARG_TABLE="indra"
+    ARG_THRESHOLD="0.990"
+
+    # source data and logging output
+    DATA_PATH="${WORKING_DIR}/${DATA_DIR}/${DATA_FILE}"
+    LOG_PATH="${WORKING_DIR}/${DATA_DIR}/${LOG_FILE}"
+set +a
 
 ./classify.sh
