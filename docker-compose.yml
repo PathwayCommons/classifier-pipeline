@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   db:
-    image: rethinkdb:${RETHINKDB_IMAGE_TAG:-2.3.7}
+    image: pathwaycommons/rethinkdb-docker:${RETHINKDB_IMAGE_TAG:-0.1.0}
     restart: unless-stopped
     container_name: db
     ports:
@@ -13,24 +13,9 @@ services:
     networks:
       - classifier-pipeline-network
     command: ["rethinkdb", "--bind", "all", "--cache-size", "${RETHINKDB_CACHE_SIZE:-1024}"]
-  dbbackup:
-    image: pathwaycommons/rethinkdb-backup:${DBBACKUP_IMAGE_TAG:-latest}
-    restart: unless-stopped
-    container_name: dbbackup
-    volumes:
-      - db-archives:/home/appuser/app/archives
-    depends_on:
-      - db
-    environment:
-      DUMP_PATH:
-      DB_HOST: "db"
-      SYNC_ENABLED:
-    networks:
-      - classifier-pipeline-network
 
 volumes:
   db-data:
-  db-archives:
 
 networks:
   classifier-pipeline-network:
