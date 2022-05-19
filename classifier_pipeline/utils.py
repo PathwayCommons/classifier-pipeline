@@ -1,6 +1,6 @@
 import csv
 from typing import Dict, List, Callable, Any, Generator, IO
-
+from . import db
 
 ####################################################
 #                 Pipeline
@@ -97,3 +97,16 @@ def list_transformer(field: str) -> Callable[[Generator[Any, None, None]], Gener
 ####################################################
 #                  Load
 ####################################################
+
+
+def db_loader(
+    table_name: str, host: str = 'localhost', port: int = 28015, username: str = 'admin', password: str = ''
+):
+    """Insert (or replace) items in the named database table"""
+    database = db.Db(host=host, port=port, username=username, password=password)
+
+    def _db_loader(items):
+        for item in items:
+            yield database.set(table_name, item)
+
+    return _db_loader

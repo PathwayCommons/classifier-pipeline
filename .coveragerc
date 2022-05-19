@@ -4,3 +4,4 @@ omit =
     tests/*
     # misc
     **/__init__.py
+    scripts/*

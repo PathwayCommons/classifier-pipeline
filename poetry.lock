@@ -1382,6 +1382,17 @@ urllib3 = ">=1.25.10"
 tests = ["pytest (>=7.0.0)", "coverage (>=6.0.0)", "pytest-cov", "pytest-asyncio", "pytest-localserver", "flake8", "types-mock", "types-requests", "mypy"]
 
 [[package]]
+name = "rethinkdb"
+version = "2.4.9"
+description = "Python driver library for the RethinkDB database server."
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+
+[package.dependencies]
+six = "*"
+
+[[package]]
 name = "rfc3986"
 version = "2.0.0"
 description = "Validating URI References per RFC 3986"
@@ -1850,7 +1861,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.10"
-content-hash = "56506e77764eab97b6c0db2dcad967059429ce388e094ce4b1b70a92f65c1917"
+content-hash = "5726a924684cd3942ad5e8d21329b2ef57e5ff372b5eb7289ad5df7f53d8b831"
 
 [metadata.files]
 absl-py = [
@@ -2959,6 +2970,10 @@ requests-toolbelt = [
 responses = [
     {file = "responses-0.20.0-py3-none-any.whl", hash = "sha256:18831bc2d72443b67664d98038374a6fa1f27eaaff4dd9a7d7613723416fea3c"},
     {file = "responses-0.20.0.tar.gz", hash = "sha256:644905bc4fb8a18fa37e3882b2ac05e610fe8c2f967d327eed669e314d94a541"},
+]
+rethinkdb = [
+    {file = "rethinkdb-2.4.9-py2.py3-none-any.whl", hash = "sha256:dd2455b3eab5266d8006eeefeb5eb970a3697dfe6aa18e1ab6e1d99233badfcb"},
+    {file = "rethinkdb-2.4.9.tar.gz", hash = "sha256:755f08f717535a55c05128f6be6c28248fa9aff2678a7816aab87e1f9f5815c1"},
 ]
 rfc3986 = [
     {file = "rfc3986-2.0.0-py2.py3-none-any.whl", hash = "sha256:50b1502b60e289cb37883f3dfd34532b8873c7de9f49bb546641ce9cbd256ebd"},
