@@ -41,7 +41,7 @@ def get_opts():
         'type': args.type,
         'idcolumn': args.idcolumn,
         'table': args.table,
-        'minyear': args.minyear
+        'minyear': args.minyear,
     }
 
     if opts['retmax'] < 0:

@@ -1,33 +1,64 @@
-# import pytest
+from numpy import isin
+import pytest
 
-# import responses
-# from requests import ConnectionError, HTTPError, Timeout
-# from ncbiutils.http import safe_requests, RequestsError
+from classifier_pipeline.ftp import Ftp
 
-# TEST_URL = 'https://fakedomain.org/'
+NCBI_FTP_HOST = 'ftp.ncbi.nlm.nih.gov'
+NCBI_PUBMED_FTP_PATH = 'pubmed/updatefiles'
+EMAIL = 'info@biofactoid.org'
+
+@pytest.fixture
+def list_items():
+    items = [
+            ('pubmed22n1323.xml.gz.md5',
+            {'modify': '20220518180915',
+            'perm': 'adfr',
+            'size': '60',
+            'type': 'file',
+            'unique': '3DU2A30F5C1',
+            'unix.group': '528',
+            'unix.groupname': 'anonymous',
+            'unix.mode': '0444',
+            'unix.owner': '14',
+            'unix.ownername': 'ftp'}),
+            ('pubmed22n1323.xml.gz.md5',
+            {'modify': '20220518180915',
+            'perm': 'adfr',
+            'size': '60',
+            'type': 'file',
+            'unique': '3DU2A30F5C1',
+            'unix.group': '528',
+            'unix.groupname': 'anonymous',
+            'unix.mode': '0444',
+            'unix.owner': '14',
+            'unix.ownername': 'ftp'}),
+            ('pubmed22n1323_stats.html',
+            {'modify': '20220518180915',
+            'perm': 'adfr',
+            'size': '586',
+            'type': 'file',
+            'unique': '3DU2A30F5C2',
+            'unix.group': '528',
+            'unix.groupname': 'anonymous',
+            'unix.mode': '0444',
+            'unix.owner': '14',
+            'unix.ownername': 'ftp'})
+        ]
+    return (item for item in items)
 
 
-# @responses.activate
-# @pytest.mark.parametrize('status', [200, 204, 302])
-# def test_no_error_on_status_ok(status):
-#     responses.add(responses.GET, TEST_URL, status=status)
-#     error, _ = safe_requests(TEST_URL)
-#     assert error is None, f'Error on good status {status}'
+class TestFtpInstance:
+    ftp = Ftp(host = NCBI_FTP_HOST, passwd = EMAIL)
 
+    def test_set_db_attr(self):
+        assert self.ftp.host == NCBI_FTP_HOST
+        assert self.ftp.passwd == EMAIL
+        assert self.ftp.port == 21
+        assert self.ftp.user == 'anonymous'
 
-# @responses.activate
-# @pytest.mark.parametrize('status', [400, 404, 500])
-# def test_error_on_bad_status(status):
-#     responses.add(responses.GET, TEST_URL, body=RequestsError(status), status=status)
-#     error, _ = safe_requests(TEST_URL)
-#     assert error is not None, f'No error on bad status {status}'
-#     assert isinstance(error, RequestsError), 'Wrong error type'
-
-
-# @responses.activate
-# @pytest.mark.parametrize('body', [ConnectionError, HTTPError, Timeout])
-# def test_error_on_exception(body):
-#     responses.add(responses.GET, TEST_URL, body=body)
-#     error, _ = safe_requests(TEST_URL)
-#     assert error is not None, 'No error on Exception'
-#     assert isinstance(error, Exception), 'Wrong error type'
+    def test_ftp_list(self):
+        contents = self.ftp.list(NCBI_PUBMED_FTP_PATH)
+        assert len(contents) > 0
+        name, facts = contents[0]
+        assert isinstance(name, str)
+        assert isinstance(facts, dict)
