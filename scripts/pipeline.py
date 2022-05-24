@@ -10,7 +10,7 @@ from classifier_pipeline.utils import (
     db_loader,
     filter,
 )
-from classifier_pipeline.classifier_pipeline import (
+from classifier_pipeline.pubmed import (
     pubmed_transformer,
     citation_pubtype_filter,
     classification_transformer,
