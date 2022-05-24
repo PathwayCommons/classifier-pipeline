@@ -2,8 +2,6 @@ from pydantic import BaseModel, PrivateAttr
 from typing import Any, Tuple, Dict, List
 from ftplib import FTP
 from loguru import logger
-from traitlets import Bool
-
 
 class Ftp(BaseModel):
     """
