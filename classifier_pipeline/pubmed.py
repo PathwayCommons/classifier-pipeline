@@ -39,9 +39,10 @@ def citation_pubtype_filter(citations: Generator[Citation, None, None]) -> Gener
 
 
 def citation_date_filter(
-    min_year: int = None
+    min_year: int = None,
 ) -> Callable[[Generator[Citation, None, None]], Generator[Citation, None, None]]:
     """filter citations by publication date"""
+
     def _citation_date_filter(citations):
         for citation in citations:
             try:
