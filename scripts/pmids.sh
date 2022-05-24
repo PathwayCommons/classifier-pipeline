@@ -5,7 +5,7 @@
 # Local variables
 WORKING_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DATA_DIR="data"
-DATA_FILE="pmid_indra_counts_hasStatement.csv"
+DATA_FILE="pmid_indra_counts_hasStatement_lite.csv"
 LOG_FILE="pmid_indra_counts_hasStatement.log"
 
 # Environment variables

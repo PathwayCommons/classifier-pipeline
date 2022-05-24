@@ -1,5 +1,5 @@
 import pytest
-from classifier_pipeline.classifier_pipeline import (
+from classifier_pipeline.pubmed import (
     citation_pubtype_filter,
     classification_transformer,
     pubmed_transformer,
@@ -66,6 +66,7 @@ def test_citation_date_filter(citation_items):
     citations = list(citation_date_filter(2021)(citation_items))
     assert len(citations) == 1
 
+
 def test_citation_date_filter_disabled(citation_items):
     citations = list(citation_date_filter()(citation_items))
     assert len(citations) == 3
@@ -77,7 +78,7 @@ def test_citation_date_filter_disabled(citation_items):
 
 
 def test_classification_transformer(mocker, citation_chunks, prediction_items):
-    mocker.patch('classifier_pipeline.classifier_pipeline.Classifier.predict', return_value=prediction_items)
+    mocker.patch('classifier_pipeline.pubmed.Classifier.predict', return_value=prediction_items)
     predictions = classification_transformer()(citation_chunks)
     p_list = list(predictions)
     assert p_list is not None
@@ -85,7 +86,7 @@ def test_classification_transformer(mocker, citation_chunks, prediction_items):
 
 
 def test_pubmed_transformer(mocker, uid_items, citations_chunks):
-    mocker.patch('classifier_pipeline.classifier_pipeline.PubMedFetch.get_citations', return_value=citations_chunks)
+    mocker.patch('classifier_pipeline.pubmed.PubMedFetch.get_citations', return_value=citations_chunks)
     citations = list(pubmed_transformer()(uid_items))
     assert len(citations) == 3
 
