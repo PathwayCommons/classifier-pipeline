@@ -1,4 +1,3 @@
-from numpy import isin
 import pytest
 
 from classifier_pipeline.ftp import Ftp
@@ -44,7 +43,7 @@ def list_items():
             'unix.owner': '14',
             'unix.ownername': 'ftp'})
         ]
-    return (item for item in items)
+    return items
 
 
 class TestFtpInstance:
@@ -56,7 +55,8 @@ class TestFtpInstance:
         assert self.ftp.port == 21
         assert self.ftp.user == 'anonymous'
 
-    def test_ftp_list(self):
+    def test_ftp_list(self, list_items, mocker):
+        mocker.patch('classifier_pipeline.ftp.Ftp.list', return_value=list_items)
         contents = self.ftp.list(NCBI_PUBMED_FTP_PATH)
         assert len(contents) > 0
         name, facts = contents[0]
