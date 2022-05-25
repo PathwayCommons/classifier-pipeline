@@ -3,6 +3,7 @@ from typing import Any, Tuple, Dict, List
 from ftplib import FTP
 from loguru import logger
 
+
 class Ftp(BaseModel):
     """
     Helper class for read-access to resources
@@ -78,4 +79,5 @@ class Ftp(BaseModel):
             logger.error('Error in list {e}', e=e)
             raise e
         else:
+            self._client.close()
             return contents
