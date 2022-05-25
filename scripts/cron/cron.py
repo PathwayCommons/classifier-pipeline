@@ -16,6 +16,14 @@ from classifier_pipeline.pubmed import (
 
 
 ####################################################
+#            Logging
+####################################################
+
+
+logger.add("cron_{time}.log")
+
+
+####################################################
 #            Command line args
 ####################################################
 
@@ -59,6 +67,6 @@ if __name__ == '__main__':
             filter(lambda x: x.classification == 1),
             prediction_db_transformer(),
             db_loader(table_name=opts['table']),
-            exhaust
+            exhaust,
         ]
     )

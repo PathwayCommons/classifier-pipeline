@@ -77,11 +77,7 @@ def citation_pubtype_filter(citations: Generator[Citation, None, None]) -> Gener
             'D016425',  # Published Erratum
         ]
     )
-    pubtypes_to_include = set(
-        [
-            'D016428',  # Journal Article
-        ]
-    )
+    pubtypes_to_include = set(['D016428',])  # Journal Article
     for citation in citations:
         excluded = False
         pubtypes = set(citation.publication_type_list)
@@ -143,8 +139,7 @@ def classification_transformer(
             prediction = classifier.predict([c.dict() for c in chunk])
             end = time.time()
             logger.info(
-                'Finished classification in {elapsed:.3g} seconds',
-                elapsed=(end - start),
+                'Finished classification in {elapsed:.3g} seconds', elapsed=(end - start),
             )
             yield from prediction
 
