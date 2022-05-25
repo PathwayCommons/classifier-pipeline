@@ -8,6 +8,7 @@ import time
 import re
 from . import db
 
+
 ####################################################
 #                  Extractor
 ####################################################
@@ -44,7 +45,11 @@ def updatefiles_data_filter() -> Callable[
 
 
 def updatefiles_facts_db_filter(
-    table_name: str, host: str = 'localhost', port: int = 28015, username: str = 'admin', password: str = ''
+    table_name: str = 'contents',
+    host: str = 'localhost',
+    port: int = 28015,
+    username: str = 'admin',
+    password: str = '',
 ):
     """Select filenames that are new (not present in database) and persist"""
     database = db.Db(host=host, port=port, username=username, password=password)
@@ -57,7 +62,7 @@ def updatefiles_facts_db_filter(
                 # save to db
                 database.set(table_name=table_name, data=fact)
                 # yield the filename
-                yield fact['filename']
+                yield fact['id']
 
     return _updatefiles_facts_db_filter
 
@@ -121,7 +126,7 @@ def updatefiles_content2facts_transformer(
     """Map the file contents to a db-friendly format"""
     for content in contents:
         name, facts = content
-        facts['id'] = facts['unique']
+        facts['id'] = name
         facts['filename'] = name
         yield facts
 
@@ -161,6 +166,8 @@ def pubmed_transformer(
                 logger.error(f'Error retrieving ids: {ids}')
                 continue
             else:
+                if type == 'download':
+                    logger.info('Processed: {name}', name=chunk)
                 logger.info('Downloaded: {n}', n=len(citations))
                 yield from citations
 
@@ -181,3 +188,31 @@ def prediction_db_transformer() -> Callable[
             yield document
 
     return _prediction_db_transformer
+
+
+####################################################
+#                  Helpers
+####################################################
+
+
+def prediction_print_spy(predictions):
+    """Print out stats related to the classifier output"""
+    tcount = 0
+    pcount = 0
+    tprobability = 0
+    for p in predictions:
+        tcount += 1
+        if p.classification == 1:
+            pcount += 1
+            tprobability += p.probability
+            logger.info(
+                'Identified {n} hits from {t} tested ({rate:.3g}%);'
+                'mean probability: {mu:.3g} --- pmid: {pmid}; prob={prob:.3g}',
+                n=pcount,
+                t=tcount,
+                rate=100 * (pcount / tcount),
+                pmid=p.document['pmid'],
+                prob=p.probability,
+                mu=tprobability / pcount,
+            )
+        yield p
