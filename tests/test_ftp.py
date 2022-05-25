@@ -11,7 +11,7 @@ EMAIL = 'info@biofactoid.org'
 def list_items():
     items = [
         (
-            'pubmed22n1323.xml.gz.md5',
+            'pubmed22n1323.xml.gz',
             {
                 'modify': '20220518180915',
                 'perm': 'adfr',

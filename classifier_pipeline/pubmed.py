@@ -1,14 +1,65 @@
-from typing import Callable, Generator, List, Dict, Any
+from typing import Callable, Generator, List, Dict, Any, Tuple
 from ncbiutils.ncbiutils import PubMedFetch, PubMedDownload
 from ncbiutils.pubmedxmlparser import Citation
 from pathway_abstract_classifier.pathway_abstract_classifier import Classifier, Prediction
+from . import ftp
 from loguru import logger
 import time
+import re
+from . import db
+
+####################################################
+#                  Extractor
+####################################################
+
+
+def updatefiles_extractor(
+    host: str = 'ftp.ncbi.nlm.nih.gov', passwd: str = 'info@biofactoid.org', path: str = 'pubmed/updatefiles'
+) -> Generator[Tuple[str, Dict[str, str]], None, None]:
+    """Extract file and associated facts from the remote server"""
+    ftp_client = ftp.Ftp(host=host, passwd=passwd)
+    contents = ftp_client.list(path)
+    yield from contents
 
 
 ####################################################
 #                  Filter
 ####################################################
+
+
+def updatefiles_data_filter() -> Callable[
+    [Generator[Tuple[str, Dict[str, str]], None, None]], Generator[Tuple[str, Dict[str, str]], None, None]
+]:
+    """Select contents associated with PubMed article data"""
+    file_re = re.compile(r'^pubmed.+\.xml\.gz$')
+
+    def _updatefiles_filter(contents):
+        for content in contents:
+            name, _ = content
+            match = file_re.match(name)
+            if match is not None:
+                yield content
+
+    return _updatefiles_filter
+
+
+def updatefiles_facts_db_filter(
+    table_name: str, host: str = 'localhost', port: int = 28015, username: str = 'admin', password: str = ''
+):
+    """Select filenames that are new (not present in database) and persist"""
+    database = db.Db(host=host, port=port, username=username, password=password)
+    _, conn, _, table = database.access_table(table_name=table_name)
+
+    def _updatefiles_facts_db_filter(facts):
+        for fact in facts:
+            db_fact = table.get(fact['id']).run(conn)
+            if db_fact is None:
+                # save to db
+                database.set(table_name=table_name, data=fact)
+                # yield the filename
+                yield fact['filename']
+
+    return _updatefiles_facts_db_filter
 
 
 def citation_pubtype_filter(citations: Generator[Citation, None, None]) -> Generator[Citation, None, None]:
@@ -62,6 +113,17 @@ def citation_date_filter(
 ####################################################
 #                  Transform
 ####################################################
+
+
+def updatefiles_content2facts_transformer(
+    contents: Generator[Tuple[str, Dict[str, str]], None, None]
+) -> Generator[Dict[str, str], None, None]:
+    """Map the file contents to a db-friendly format"""
+    for content in contents:
+        name, facts = content
+        facts['id'] = facts['unique']
+        facts['filename'] = name
+        yield facts
 
 
 def classification_transformer(
