@@ -160,14 +160,15 @@ def pubmed_transformer(
 
     def _pubmed_fetch_transformer(items):
         chunks = pmt.get_citations(list(items))
-        for chunk in chunks:
+        for index, chunk in enumerate(chunks):
             error, citations, ids = chunk
             if error is not None:
                 logger.error(f'Error retrieving ids: {ids}')
                 continue
             else:
                 if type == 'download':
-                    logger.info('Processed: {name}', name=chunk)
+                    filename = items[index]
+                    logger.info('Processed file: {file}', file=filename)
                 logger.info('Downloaded: {n}', n=len(citations))
                 yield from citations
 
