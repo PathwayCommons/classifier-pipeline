@@ -79,4 +79,5 @@ class Ftp(BaseModel):
             logger.error('Error in list {e}', e=e)
             raise e
         else:
+            self._client.close()
             return contents

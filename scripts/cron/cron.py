@@ -1,6 +1,6 @@
 from loguru import logger
 import argparse
-from classifier_pipeline.utils import as_pipeline, limit_filter, chunker, db_loader, filter, print_transform, exhaust
+from classifier_pipeline.utils import as_pipeline, chunker, db_loader, filter, exhaust
 from classifier_pipeline.pubmed import (
     updatefiles_extractor,
     updatefiles_data_filter,
@@ -50,7 +50,6 @@ if __name__ == '__main__':
             updatefiles_data_filter(),
             updatefiles_content2facts_transformer,
             updatefiles_facts_db_filter(),
-            limit_filter(1),
             pubmed_transformer(type='download'),
             citation_pubtype_filter,
             citation_date_filter(opts['minyear']),

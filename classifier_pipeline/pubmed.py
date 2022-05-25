@@ -16,7 +16,7 @@ from . import db
 
 def updatefiles_extractor(
     host: str = 'ftp.ncbi.nlm.nih.gov', passwd: str = 'info@biofactoid.org', path: str = 'pubmed/updatefiles'
-) -> Generator[Tuple[str, Dict[str, str]], None, None]:
+):
     """Extract file and associated facts from the remote server"""
     ftp_client = ftp.Ftp(host=host, passwd=passwd)
     contents = ftp_client.list(path)
@@ -53,11 +53,10 @@ def updatefiles_facts_db_filter(
 ):
     """Select filenames that are new (not present in database) and persist"""
     database = db.Db(host=host, port=port, username=username, password=password)
-    _, conn, _, table = database.access_table(table_name=table_name)
 
     def _updatefiles_facts_db_filter(facts):
         for fact in facts:
-            db_fact = table.get(fact['id']).run(conn)
+            db_fact = database.get(table_name=table_name, id=fact['id'])
             if db_fact is None:
                 # save to db
                 database.set(table_name=table_name, data=fact)
@@ -159,19 +158,14 @@ def pubmed_transformer(
     pmt = PubMedDownload() if type == 'download' else PubMedFetch(**opts)
 
     def _pubmed_fetch_transformer(items):
-        index = -1
-        item_list = [i for i in items]
+        item_list = items if type == 'download' else [item for item in items]
         chunks = pmt.get_citations(item_list)
         for chunk in chunks:
-            index += 1
             error, citations, ids = chunk
             if error is not None:
                 logger.error(f'Error retrieving ids: {ids}')
                 continue
             else:
-                if type == 'download':
-                    filename = item_list[index]
-                    logger.info('Processed file: {file}', file=filename)
                 logger.info('Downloaded {n} citations', n=len(citations))
                 yield from citations
 
