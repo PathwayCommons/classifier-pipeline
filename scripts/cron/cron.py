@@ -60,7 +60,6 @@ if __name__ == '__main__':
             filter(lambda x: x.classification == 1),
             prediction_db_transformer(),
             db_loader(table_name=opts['table']),
-            # print_transform,
-            exhaust,
+            exhaust
         ]
     )

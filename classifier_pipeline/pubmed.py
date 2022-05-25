@@ -159,17 +159,20 @@ def pubmed_transformer(
     pmt = PubMedDownload() if type == 'download' else PubMedFetch(**opts)
 
     def _pubmed_fetch_transformer(items):
-        chunks = pmt.get_citations(list(items))
-        for index, chunk in enumerate(chunks):
+        index = -1
+        item_list = [i for i in items]
+        chunks = pmt.get_citations(item_list)
+        for chunk in chunks:
+            index += 1
             error, citations, ids = chunk
             if error is not None:
                 logger.error(f'Error retrieving ids: {ids}')
                 continue
             else:
                 if type == 'download':
-                    filename = items[index]
+                    filename = item_list[index]
                     logger.info('Processed file: {file}', file=filename)
-                logger.info('Downloaded: {n}', n=len(citations))
+                logger.info('Downloaded {n} citations', n=len(citations))
                 yield from citations
 
     return _pubmed_fetch_transformer
