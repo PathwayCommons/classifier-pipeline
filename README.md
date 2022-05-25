@@ -40,34 +40,28 @@ $ poetry install
 Launch a pipeline to process daily updates from PubMed:
 
 ```bash
-$ ./dailyupdates.sh
-```
-or a custom set of articles indicated by PubMed ID:
-
-```bash
-$ ./pmids.sh
+$ ./scripts/cron/cron.sh
 ```
 
 ## Elements of the 'Pipeline'
 
 ### The pipeline
 
-`pipeline.py` in the `scripts` directory declares a set of chained python functions defined in the `classifier_pipeline` module that:
-- read in csv data from stdin (`csv2dict_reader`)
-- strip out a single column (e.g. PMIDs, filenames) as a list (`list_transformer`)
-- retrieves records/files from PubMed (`pubmed_transformer`)
-  - uses [ncbiutils](https://github.com/PathwayCommons/ncbiutils)
-- applies various filters on the individual records (`citation_pubtype_filter`, `citation_date_filter`)
-- applies a deep-learning classifier to text fields (`classification_transformer`)
-  - uses [pathway-abstract-classifier](https://github.com/PathwayCommons/pathway-abstract-classifier/)
+The `scripts` directory contains python files that chain functions in `classifier_pipeline` to:
+- read in data from
+  - csv, via stdin (`csv2dict_reader`)
+  - [daily PubMed updates](https://ftp.ncbi.nlm.nih.gov/pubmed/updatefiles/) (`updatefiles_extractor`)
+- retrieve records/files from PubMed (`pubmed_transformer`)
+- apply various filters on the individual records (`citation_pubtype_filter`, `citation_date_filter`)
+- apply a deep-learning classifier to text fields (`classification_transformer`)
 - loads the formatted data into a RethinkDB instance (`db_loader`)
 
 ### Launchers
 
 - Pipelines are launched through bash scripts that retrieve PubMed article records in two ways:
-    - `dailyupdates.sh`: retrieves via the [FTP file server](https://www.nlm.nih.gov/databases/download/pubmed_medline.html) given a set of file names
-    - `pmids.sh`: retrieve using the [NCBI E-Utilities](https://www.ncbi.nlm.nih.gov/books/NBK25499/) given a set of PubMed IDs
-- Environment variables
+    - `./scripts/cron/cron.sh`: retrieves via the [FTP file server](https://www.nlm.nih.gov/databases/download/pubmed_medline.html) all new content
+    - `./scripts/csv/pmids.sh`: retrieve using the [NCBI E-Utilities](https://www.ncbi.nlm.nih.gov/books/NBK25499/) given a set of PubMed IDs
+- Variables
     - `DATA_DIR` root directory where your data files exist
     - `DATA_FILE` name of the csv file in your `DATA_DIR`
     - `ARG_IDCOLUMN` the csv header column name containing either
