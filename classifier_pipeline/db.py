@@ -100,6 +100,10 @@ class Db(BaseModel):
     def access_table(self, table_name: str) -> Table:
         return self._guarantee_table(table_name)
 
+    def get(self, table_name: str, id: Any) -> Dict[str, Any]:
+        _, conn, _, table = self._guarantee_table(table_name)
+        return table.get(id).run(conn)
+
     def set(self, table_name: str, data: Dict[str, Any]) -> Dict[str, int]:
         set_result = None
         exists = False

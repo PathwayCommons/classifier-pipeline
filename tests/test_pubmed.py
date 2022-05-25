@@ -1,5 +1,8 @@
 import pytest
-from classifier_pipeline.classifier_pipeline import (
+from classifier_pipeline.pubmed import (
+    updatefiles_extractor,
+    updatefiles_data_filter,
+    updatefiles_content2facts_transformer,
     citation_pubtype_filter,
     classification_transformer,
     pubmed_transformer,
@@ -52,9 +55,36 @@ def citations_chunks():
     yield [(error, citations, uids)]
 
 
+@pytest.fixture
+def updatefiles_contents():
+    return (c for c in citations)
+
+
+####################################################
+#                  Extractor
+####################################################
+
+
+def test_updatefiles_extractor(mocker, list_contents):
+    mocker.patch('classifier_pipeline.pubmed.ftp.Ftp.list', return_value=list_contents)
+    contents = [c for c in updatefiles_extractor()]
+    assert len(contents) == len(list_contents)
+
+
 ####################################################
 #                  Filter
 ####################################################
+
+
+def test_updatefiles_data_filter(list_contents):
+    filtered = updatefiles_data_filter()(list_contents)
+    for content in filtered:
+        name, _ = content
+        assert name != '.'
+        assert name != '..'
+        assert name != 'README.txt'
+        assert '.md5' not in name
+        assert '.html' not in name
 
 
 def test_citation_pubtype_filter(citation_items):
@@ -66,6 +96,7 @@ def test_citation_date_filter(citation_items):
     citations = list(citation_date_filter(2021)(citation_items))
     assert len(citations) == 1
 
+
 def test_citation_date_filter_disabled(citation_items):
     citations = list(citation_date_filter()(citation_items))
     assert len(citations) == 3
@@ -76,8 +107,15 @@ def test_citation_date_filter_disabled(citation_items):
 ####################################################
 
 
+def test_updatefiles_content2facts_transformer(list_contents):
+    transformed = updatefiles_content2facts_transformer(list_contents)
+    for item in transformed:
+        assert 'id' in item
+        assert 'filename' in item
+
+
 def test_classification_transformer(mocker, citation_chunks, prediction_items):
-    mocker.patch('classifier_pipeline.classifier_pipeline.Classifier.predict', return_value=prediction_items)
+    mocker.patch('classifier_pipeline.pubmed.Classifier.predict', return_value=prediction_items)
     predictions = classification_transformer()(citation_chunks)
     p_list = list(predictions)
     assert p_list is not None
@@ -85,7 +123,7 @@ def test_classification_transformer(mocker, citation_chunks, prediction_items):
 
 
 def test_pubmed_transformer(mocker, uid_items, citations_chunks):
-    mocker.patch('classifier_pipeline.classifier_pipeline.PubMedFetch.get_citations', return_value=citations_chunks)
+    mocker.patch('classifier_pipeline.pubmed.PubMedFetch.get_citations', return_value=citations_chunks)
     citations = list(pubmed_transformer()(uid_items))
     assert len(citations) == 3
 
