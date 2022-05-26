@@ -1,6 +1,8 @@
 import csv
 from typing import Dict, List, Callable, Any, Generator, IO
 from . import db
+from collections import deque
+
 
 ####################################################
 #                 Pipeline
@@ -63,6 +65,13 @@ def limit_filter(limit: int) -> Callable[[Generator[Any, None, None]], Generator
 ####################################################
 
 
+def print_transform(items):
+    """Print and pass item through"""
+    for item in items:
+        print(item)
+        yield item
+
+
 def chunker(size: int) -> Callable[[Generator[Any, None, None]], Generator[Any, None, None]]:
     """Aggregate items into chunks of a given size"""
 
@@ -110,3 +119,8 @@ def db_loader(
             yield database.set(table_name, item)
 
     return _db_loader
+
+
+def exhaust(generator):
+    """Pull items through, do not keep"""
+    deque(generator, maxlen=0)
