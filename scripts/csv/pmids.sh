@@ -20,8 +20,8 @@ set -a
     ARG_THRESHOLD="0.990"
 
     # source data and logging output
-    DATA_PATH="${WORKING_DIR}/${DATA_DIR}/${DATA_FILE}"
-    LOG_PATH="${WORKING_DIR}/${DATA_DIR}/${LOG_FILE}"
+    DATA_PATH="${WORKING_DIR}/../${DATA_DIR}/${DATA_FILE}"
+    LOG_PATH="${WORKING_DIR}/../${DATA_DIR}/${LOG_FILE}"
 set +a
 
 ./classify.sh
