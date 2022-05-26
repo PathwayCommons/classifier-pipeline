@@ -10,7 +10,7 @@ from classifier_pipeline.utils import (
     db_loader,
     filter,
 )
-from classifier_pipeline.classifier_pipeline import (
+from classifier_pipeline.pubmed import (
     pubmed_transformer,
     citation_pubtype_filter,
     classification_transformer,
@@ -41,7 +41,7 @@ def get_opts():
         'type': args.type,
         'idcolumn': args.idcolumn,
         'table': args.table,
-        'minyear': args.minyear
+        'minyear': args.minyear,
     }
 
     if opts['retmax'] < 0:
