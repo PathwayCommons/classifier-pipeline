@@ -37,10 +37,10 @@ Install the dependencies:
 $ poetry install
 ```
 
-Launch a pipeline to process daily updates from PubMed:
+Launch a pipeline to process daily updates from PubMed and dump the RethinkDB database:
 
 ```bash
-$ ./scripts/cron/cron.sh
+$ ./scripts/cron/install.sh
 ```
 
 ## Elements of the 'Pipeline'
