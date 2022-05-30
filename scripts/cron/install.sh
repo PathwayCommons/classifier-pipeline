@@ -21,4 +21,5 @@
 WORKDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Append to cron jobs: Check PubMed FTP dailyupdates
-(crontab -l 2>/dev/null; echo "41 * * * * ${WORKDIR}/cron.sh > ${WORKDIR}/cron.log 2> ${WORKDIR}/cron.err") | sort - | uniq - | crontab -
+(crontab -l 2>/dev/null; echo "30 12 * * * ${WORKDIR}/cron.sh > ${WORKDIR}/cron.log 2> ${WORKDIR}/cron.err") | uniq - | crontab -
+(crontab -l 2>/dev/null; echo "0 1 * * * ${WORKDIR}/rethinkdb_dump.sh > ${WORKDIR}/rethinkdb_dump.log 2> ${WORKDIR}/rethinkdb_dump.err") | uniq - | crontab -
