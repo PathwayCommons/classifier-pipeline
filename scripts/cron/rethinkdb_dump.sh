@@ -7,7 +7,6 @@ set -e
 # Environment variables
 WORKING_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DOCKER="/usr/bin/docker"
-COMPOSE="/usr/local/bin/docker-compose --file ${WORKING_DIR}/../../docker-compose.yml"
 
 DATE=$(date +"%Y_%m_%d_%I_%M_%p")
 DB_DUMP_FILE="rethinkdb_dump_${DATE}.tar.gz"
