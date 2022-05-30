@@ -14,11 +14,7 @@ DB_DUMP_FILE="rethinkdb_dump_${DATE}.tar.gz"
 DB_NAME=classifier
 DB_WORKDIR=/data
 
-if [[ -z $(${COMPOSE} ps -aq) ]]; then
-    echo "Dump the database ${DB_NAME} to ${WORKING_DIR}"
-    ${DOCKER} exec -t db /bin/bash -c "rethinkdb dump --connect localhost:28015 --export ${DB_NAME} --file ${DB_DUMP_FILE}"
-    ${DOCKER} cp db:${DB_WORKDIR}/${DB_DUMP_FILE} ${WORKING_DIR}
-else
-    echo "No database available"
-fi
+echo "Dump the database ${DB_NAME} to ${WORKING_DIR}"
+${DOCKER} exec -t db /bin/bash -c "rethinkdb dump --connect localhost:28015 --export ${DB_NAME} --file ${DB_DUMP_FILE}"
+${DOCKER} cp db:${DB_WORKDIR}/${DB_DUMP_FILE} ${WORKING_DIR}
 
