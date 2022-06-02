@@ -10,24 +10,17 @@ CONDA_ENV="pipeline"
 # Environment variables
 set -a
     LOGURU_LEVEL="INFO"
+    WORKING_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+    CONDA_BASE="/home/baderlab/miniconda3"
 set +a
 
 echo "--"
 echo "Starting ${JOB_NAME} within environment ${CONDA_ENV}"
 
-WORKING_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-CONDA_BASE=$(conda info --base)
-
 # stop the old screen session
 echo "Quitting old screen session..."
 screen -S $JOB_NAME -X -p 0 stuff ^C && echo "Sent ^C" || echo "No screen session to ^C"
 screen -S $JOB_NAME -X quit && echo "Quit old screen session" || echo "No screen session to stop"
-
-### start a database if not already
-if [[ -z $(docker-compose ps -aq) ]]; then
-  echo "Start the database instance"
-  docker-compose up -d db
-fi
 
 ###initialize conda
 source ${CONDA_BASE}/etc/profile.d/conda.sh
