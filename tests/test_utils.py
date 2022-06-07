@@ -25,7 +25,9 @@ def updatefiles_stream(shared_datadir):
 
 
 def test_as_pipeline():
-    afunc = lambda x: x
+    def afunc(x):
+        return x
+
     result = as_pipeline([afunc])
     assert result == afunc
 
@@ -50,7 +52,9 @@ def test_csv2dict_reader_generates_correct_keys(updatefiles_stream):
 
 
 def test_filter(numeric_items):
-    predicate = lambda x: x < 5
+    def predicate(x):
+        return x < 5
+
     items = filter(predicate)(numeric_items)
     results = list(items)
     assert len(results) == 5
