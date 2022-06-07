@@ -101,6 +101,7 @@ if __name__ == '__main__':
             csv2dict_reader(sys.stdin),
             list_transformer(field=opts['idcolumn']),
             pubmed_transformer(type=opts['type']),
+            filter(lambda x: x.author_list is not None),
             citation_pubtype_filter,
             citation_date_filter(opts['minyear']),
             chunker(1000),
