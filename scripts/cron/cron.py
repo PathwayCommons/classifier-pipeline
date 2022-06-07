@@ -67,7 +67,7 @@ if __name__ == '__main__':
             prediction_print_spy,
             filter(lambda x: x.classification == 1),
             prediction_db_transformer(),
-            chunker(1000),
+            chunker(100),
             pmc_supplement_transfomer(),
             db_loader(table_name=opts['table']),
             exhaust,
