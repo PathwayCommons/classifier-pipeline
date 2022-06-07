@@ -60,6 +60,7 @@ if __name__ == '__main__':
             updatefiles_content2facts_transformer,
             updatefiles_facts_db_filter(),
             pubmed_transformer(type='download'),
+            filter(lambda x: x.author_list is not None),
             citation_pubtype_filter,
             citation_date_filter(opts['minyear']),
             chunker(1000),
