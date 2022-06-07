@@ -16,6 +16,7 @@ from classifier_pipeline.pubmed import (
     classification_transformer,
     prediction_db_transformer,
     citation_date_filter,
+    pmc_supplement_transfomer,
 )
 
 
@@ -23,14 +24,15 @@ from classifier_pipeline.pubmed import (
 #            Command line args
 ####################################################
 retmax_limit = 10000
-default_threshold = 0.5
+default_threshold = 0.0001
+default_min_year = 2021
 parser = argparse.ArgumentParser()
 parser.add_argument('--retmax', nargs='?', type=int, default=str(retmax_limit))
 parser.add_argument('--threshold', nargs='?', type=float, default=str(default_threshold))
 parser.add_argument('--type', nargs='?', type=str, default='fetch')
 parser.add_argument('--idcolumn', nargs='?', type=str, default='pmid')
 parser.add_argument('--table', nargs='?', type=str, default='articles')
-parser.add_argument('--minyear', nargs='?', type=int)
+parser.add_argument('--minyear', nargs='?', type=int, default=str(default_min_year))
 
 
 def get_opts():
@@ -50,9 +52,6 @@ def get_opts():
         opts['retmax'] = retmax_limit
 
     if opts['threshold'] < 0 or opts['threshold'] > 1:
-        raise ValueError('threshold must be on [0, 1]')
-
-    if opts['minyear'] == 'None':
         raise ValueError('threshold must be on [0, 1]')
 
     return opts
@@ -102,6 +101,7 @@ if __name__ == '__main__':
             csv2dict_reader(sys.stdin),
             list_transformer(field=opts['idcolumn']),
             pubmed_transformer(type=opts['type']),
+            filter(lambda x: x.author_list is not None),
             citation_pubtype_filter,
             citation_date_filter(opts['minyear']),
             chunker(1000),
@@ -109,6 +109,8 @@ if __name__ == '__main__':
             prediction_print_spy,
             filter(lambda x: x.classification == 1),
             prediction_db_transformer(),
+            chunker(1000),
+            pmc_supplement_transfomer(),
             db_loader(table_name=opts['table']),
             exhaust,
         ]
