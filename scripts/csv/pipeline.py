@@ -7,7 +7,7 @@ from classifier_pipeline.utils import (
     csv2dict_reader,
     list_transformer,
     chunker,
-    # db_loader,
+    db_loader,
     filter,
 )
 from classifier_pipeline.pubmed import (
@@ -110,8 +110,7 @@ if __name__ == '__main__':
             prediction_db_transformer(),
             chunker(1000),
             pmc_supplement_transfomer(),
-            # print_transform,
-            # db_loader(table_name=opts['table']),
+            db_loader(table_name=opts['table']),
             exhaust,
         ]
     )
