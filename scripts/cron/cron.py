@@ -11,6 +11,7 @@ from classifier_pipeline.pubmed import (
     classification_transformer,
     prediction_db_transformer,
     citation_date_filter,
+    pmc_supplement_transfomer,
     prediction_print_spy,
 )
 
@@ -59,6 +60,7 @@ if __name__ == '__main__':
             updatefiles_content2facts_transformer,
             updatefiles_facts_db_filter(),
             pubmed_transformer(type='download'),
+            filter(lambda x: x.author_list is not None),
             citation_pubtype_filter,
             citation_date_filter(opts['minyear']),
             chunker(1000),
@@ -66,6 +68,8 @@ if __name__ == '__main__':
             prediction_print_spy,
             filter(lambda x: x.classification == 1),
             prediction_db_transformer(),
+            chunker(100),
+            pmc_supplement_transfomer(),
             db_loader(table_name=opts['table']),
             exhaust,
         ]

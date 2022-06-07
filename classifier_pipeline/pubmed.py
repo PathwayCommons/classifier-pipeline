@@ -1,12 +1,17 @@
 from typing import Callable, Generator, List, Dict, Any, Tuple
 from ncbiutils.ncbiutils import PubMedFetch, PubMedDownload
 from ncbiutils.pubmedxmlparser import Citation
+from ncbiutils.types import DbEnum
 from pathway_abstract_classifier.pathway_abstract_classifier import Classifier, Prediction
 from . import ftp
 from loguru import logger
 import time
 import re
 from . import db
+
+
+def unique_list(alist):
+    return list(dict.fromkeys(alist))
 
 
 ####################################################
@@ -77,7 +82,11 @@ def citation_pubtype_filter(citations: Generator[Citation, None, None]) -> Gener
             'D016425',  # Published Erratum
         ]
     )
-    pubtypes_to_include = set(['D016428',])  # Journal Article
+    pubtypes_to_include = set(
+        [
+            'D016428',
+        ]
+    )  # Journal Article
     for citation in citations:
         excluded = False
         pubtypes = set(citation.publication_type_list)
@@ -139,7 +148,8 @@ def classification_transformer(
             prediction = classifier.predict([c.dict() for c in chunk])
             end = time.time()
             logger.info(
-                'Finished classification in {elapsed:.3g} seconds', elapsed=(end - start),
+                'Finished classification in {elapsed:.3g} seconds',
+                elapsed=(end - start),
             )
             yield from prediction
 
@@ -181,6 +191,66 @@ def prediction_db_transformer() -> Callable[
             yield document
 
     return _prediction_db_transformer
+
+
+def _supplement_author(doc: Dict[str, Any], citation: Citation):
+    """Merge the citation email information per author, and correspondence"""
+    citation_authors = citation.author_list
+    doc_authors = doc['author_list']
+    doc['correspondence'] = doc['correspondence'] + citation.correspondence
+    authors_with_emails = [a for a in citation_authors if a.emails is not None]
+    for author_with_emails in authors_with_emails:
+        matching_doc_author = next(
+            (
+                doc_author
+                for doc_author in doc_authors
+                if doc_author['fore_name'] == author_with_emails.fore_name
+                and doc_author['last_name'] == author_with_emails.last_name
+            ),
+            None,
+        )
+        if matching_doc_author is not None:
+            emails = author_with_emails.emails
+            if matching_doc_author['emails'] is not None:
+                emails = emails + matching_doc_author['emails']
+            matching_doc_author['emails'] = unique_list(emails)
+
+
+def _supplement_docs(docs: List[Dict[str, Any]], citations: List[Citation]):
+    """Match citations to a doc, then delegate tasks"""
+    for citation in citations:
+        pmid = citation.pmid
+        doc = next((item for item in docs if item['pmid'] == pmid), None)
+        if doc is None:
+            continue
+        else:
+            _supplement_author(doc, citation)
+
+
+def pmc_supplement_transfomer() -> Callable[
+    [Generator[List[Dict[str, Any]], None, None]], Generator[Dict[str, Any], None, None]
+]:
+    """Add PMC information to documents (when available)"""
+    pmt = PubMedFetch(db=DbEnum.pmc)
+
+    def _pmc_supplement_transfomer(
+        chunks: Generator[List[Dict[str, Any]], None, None]
+    ) -> Generator[Dict[str, Any], None, None]:
+        for docs in chunks:
+            uids = [doc['pmc'] for doc in docs if doc['pmc'] is not None]
+            logger.info('Retrieving {n} PMC IDs', n=len(uids))
+            pubmed_chunks = pmt.get_citations(uids=uids)
+            for pubmed_chunk in pubmed_chunks:
+                error, citations, ids = pubmed_chunk
+                if error is not None:
+                    logger.error(f'Error retrieving ids: {ids}')
+                    continue
+                else:
+                    logger.info('Downloaded {n} pmc citations', n=len(citations))
+                    _supplement_docs(docs, citations)
+            yield from docs
+
+    return _pmc_supplement_transfomer
 
 
 ####################################################
