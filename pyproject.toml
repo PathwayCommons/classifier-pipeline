@@ -21,7 +21,7 @@ classifiers = [
 python = ">=3.8,<3.10"
 ncbiutils = "^0.5.2"
 loguru = "^0.6.0"
-pathway-abstract-classifier = "^0.2.2"
+pathway-abstract-classifier = {git = "https://github.com/PathwayCommons/pathway-abstract-classifier.git", rev = "explainer_proto"}
 pydantic = "^1.9.0"
 rethinkdb = "^2.4.9"
 
