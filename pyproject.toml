@@ -24,6 +24,7 @@ loguru = "^0.6.0"
 pathway-abstract-classifier = {git = "https://github.com/PathwayCommons/pathway-abstract-classifier.git", rev = "explainer_proto"}
 pydantic = "^1.9.0"
 rethinkdb = "^2.4.9"
+bs4 = "^0.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -35,6 +36,7 @@ responses = "^0.20.0"
 pytest-mock = "^3.7.0"
 mypy = "^0.950"
 python-semantic-release = "^7.28.1"
+ipython = "^8.4.0"
 
 [tool.black]
 line-length = 119

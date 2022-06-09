@@ -24,7 +24,7 @@ def score_transformer(**opts) -> Callable[[Generator[List[Citation], None, None]
 
     def _score_transformer(chunks):
         for chunk in chunks:
-            explanations = classifier.explain([c.dict() for c in chunk], n_samples=25)
+            explanations = classifier.explain([c.dict() for c in chunk])
             yield from explanations
 
     return _score_transformer
