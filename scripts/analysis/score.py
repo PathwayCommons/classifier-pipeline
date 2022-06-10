@@ -1,21 +1,21 @@
 import sys
 from loguru import logger
-from typing import Callable, Generator, List, Dict, Any, Tuple
+from typing import Callable, Generator, List
 from pathway_abstract_classifier.pathway_abstract_classifier import Explanation, Classifier
 from ncbiutils.pubmed import Citation
-import argparse
-from collections import deque
 from classifier_pipeline.utils import (
     as_pipeline,
     csv2dict_reader,
     list_transformer,
     chunker,
-    # print_transform,
+    print_transform,
     exhaust
 )
 from classifier_pipeline.pubmed import (
     pubmed_transformer
 )
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
 
 def score_transformer(**opts) -> Callable[[Generator[List[Citation], None, None]], Generator[Explanation, None, None]]:
@@ -28,6 +28,17 @@ def score_transformer(**opts) -> Callable[[Generator[List[Citation], None, None]
             yield from explanations
 
     return _score_transformer
+
+
+def sentences_transformer():
+    """Rip out the sentences"""
+    def _sentences_transformer(explanations):
+        for explanation in explanations:
+            _, _, sentences  = explanation
+            pp.pprint(sentences)
+            yield sentences
+
+    return _sentences_transformer
 
 
 cache = []
@@ -94,8 +105,21 @@ if __name__ == '__main__':
             pubmed_transformer(),
             chunker(5),
             score_transformer(),
-            _fill_input,
-            _csv_loader,
+            sentences_transformer(),
             exhaust,
         ]
     )
+
+    # pipeline = as_pipeline(
+    #     [
+    #         csv2dict_reader(sys.stdin),
+    #         _tee,
+    #         list_transformer(field='pmid'),
+    #         pubmed_transformer(),
+    #         chunker(5),
+    #         score_transformer(),
+    #         _fill_input,
+    #         _csv_loader,
+    #         exhaust,
+    #     ]
+    # )
