@@ -10,6 +10,7 @@ import re
 from . import db
 import calendar
 import datetime
+import pytz
 
 
 def unique_list(alist):
@@ -206,7 +207,7 @@ def prediction_db_transformer() -> Callable[
             pub_year = int(pub_year)
             pub_month = _get_pub_month(journal) if journal['pub_month'] is not None else MIN_RETHINKDB_MONTH
             pub_day = int(journal['pub_day']) if journal['pub_day'] is not None else MIN_RETHINKDB_DAY
-            return datetime.date(pub_year, pub_month, pub_day)
+            return datetime.datetime(pub_year, pub_month, pub_day, tzinfo=pytz.UTC)
 
     def _prediction_db_transformer(
         predictions: Generator[Prediction, None, None]
@@ -220,6 +221,7 @@ def prediction_db_transformer() -> Callable[
                     'classification': classification,
                     'probability': probability,
                     'pub_date': pub_date,
+                    'last_updated': datetime.datetime.utcnow()
                 }
             )
             yield document

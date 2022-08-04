@@ -496,9 +496,10 @@ def test_prediction_db_transformer(prediction_items):
     formatted = list(prediction_db_transformer()(prediction_items))
     for item in formatted:
         assert 'id' in item
+        assert 'last_updated' in item
         assert 'pub_date' in item
         if item['pub_date'] is not None:
-            assert isinstance(item['pub_date'], datetime.date)
+            assert isinstance(item['pub_date'], datetime.datetime)
 
 
 def test_pmc_supplement_transfomer(mocker, pmc_docs, pmc_citation_chunks):
