@@ -8,6 +8,9 @@ from loguru import logger
 import time
 import re
 from . import db
+import calendar
+import datetime
+import pytz
 
 
 def unique_list(alist):
@@ -181,13 +184,46 @@ def prediction_db_transformer() -> Callable[
     [Generator[Prediction, None, None]], Generator[Dict[str, Any], None, None]
 ]:
     """Format prediction so it can be inserted into database"""
+    month_names = {month: index for index, month in enumerate(calendar.month_abbr) if month}
+
+    def _get_pub_month(journal):
+        result = None
+        pub_month = journal['pub_month']
+        if pub_month is not None:
+            try:
+                result = int(pub_month)
+            except ValueError:
+                result = month_names[pub_month]
+        return result
+
+    def _get_pub_date(document):
+        MIN_RETHINKDB_MONTH = 1
+        MIN_RETHINKDB_DAY = 1
+        journal = document['journal']
+        pub_year = journal['pub_year']
+        if pub_year is None:
+            return None
+        else:
+            pub_year = int(pub_year)
+            pub_month = _get_pub_month(journal) if journal['pub_month'] is not None else MIN_RETHINKDB_MONTH
+            pub_day = int(journal['pub_day']) if journal['pub_day'] is not None else MIN_RETHINKDB_DAY
+            return datetime.datetime(pub_year, pub_month, pub_day, tzinfo=pytz.UTC)
 
     def _prediction_db_transformer(
         predictions: Generator[Prediction, None, None]
     ) -> Generator[Dict[str, Any], None, None]:
         for prediction in predictions:
             document, classification, probability = prediction
-            document.update({'id': document['pmid'], 'classification': classification, 'probability': probability})
+            pub_date = _get_pub_date(document)
+            document.update(
+                {
+                    'id': document['pmid'],
+                    'classification': classification,
+                    'probability': probability,
+                    'pub_date': pub_date,
+                    'last_updated': datetime.datetime.now(pytz.UTC)
+                }
+            )
             yield document
 
     return _prediction_db_transformer

@@ -13,6 +13,7 @@ from classifier_pipeline.pubmed import (
 from ncbiutils.pubmedxmlparser import Citation
 from ncbiutils.ncbiutils import Chunk
 from pathway_abstract_classifier.pathway_abstract_classifier import Prediction
+import datetime
 
 uids = ('1', '2', '3')
 citations = (
@@ -495,6 +496,10 @@ def test_prediction_db_transformer(prediction_items):
     formatted = list(prediction_db_transformer()(prediction_items))
     for item in formatted:
         assert 'id' in item
+        assert 'last_updated' in item
+        assert 'pub_date' in item
+        if item['pub_date'] is not None:
+            assert isinstance(item['pub_date'], datetime.datetime)
 
 
 def test_pmc_supplement_transfomer(mocker, pmc_docs, pmc_citation_chunks):
