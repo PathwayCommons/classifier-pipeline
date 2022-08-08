@@ -106,17 +106,6 @@ class Db(BaseModel):
 
     def set(self, table_name: str, data: Dict[str, Any]) -> Dict[str, int]:
         set_result = None
-        exists = False
-        id = None
         _, conn, _, table = self._guarantee_table(table_name)
-
-        if 'id' in data:
-            id = data['id']
-            result = table.get(id).run(conn)
-            if result is not None:
-                exists = True
-        if exists:
-            set_result = table.get(id).replace(data).run(conn)
-        else:
-            set_result = table.insert(data).run(conn)
+        set_result = table.insert(data).run(conn)
         return set_result
