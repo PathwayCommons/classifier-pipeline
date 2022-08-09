@@ -15,6 +15,12 @@ This repository is geared heavily towards drawing articles from PubMed, identify
 - Graphics Processing Unit (GPU) (Optional)
   - The pipeline classifier can be sped up an order of magnitude by running on a system with a GPU. We have been using a system running Ubuntu 18.04.5 LTS, Intel(R) Xeon(R) CPU E5-2687W, 24 Core with an NVIDIA GP102 [TITAN Xp] GPU.
 
+## Access article feed via web service
+
+- Access the Swagger documentation at [/docs](http://127.0.0.1:8000/docs).
+- Access the Redoc documentation at [/redoc](http://127.0.0.1:8000/redoc).
+
+
 ## Usage
 
 Create a conda environment, here named `pipeline`:
