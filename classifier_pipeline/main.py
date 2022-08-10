@@ -171,10 +171,7 @@ def _as_csv(items: Generator[Dict[str, Any], None, None]) -> Generator[Any, None
         writer.writerow(first)
         writer.writerows(items)
         csvfile.seek(0)  # need to seek first posittion for readline() to return something
-        line = csvfile.readline()
-        while len(line) > 0:
-            yield line
-            line = csvfile.readline()
+        yield from (line for line in csvfile)
     csvfile.close()
 
 
