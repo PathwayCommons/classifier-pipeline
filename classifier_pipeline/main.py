@@ -1,10 +1,13 @@
 from typing import Dict, Any, Generator
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from datetime import datetime
 import pytz
 from classifier_pipeline.db import Db, MAX_DATE, MIN_DATE, MAX_NUM_ITEMS
 from loguru import logger
 from enum import Enum
+import csv
+from io import StringIO
 
 
 ####################################################
@@ -141,7 +144,9 @@ def _as_merge(items: Generator[Dict[str, Any], None, None]) -> Generator[Dict[st
         }
 
 
-def to_ret_type(items: Generator[Dict[str, Any], None, None], rettype: RetTypeEnum):
+def to_ret_type(
+    items: Generator[Dict[str, Any], None, None], rettype: RetTypeEnum
+) -> Generator[Dict[str, Any], None, None]:
     """Format by delegating to a specific formatter"""
     typed = items
     if rettype == RetTypeEnum.default:
@@ -149,8 +154,44 @@ def to_ret_type(items: Generator[Dict[str, Any], None, None], rettype: RetTypeEn
     elif rettype == RetTypeEnum.merge:
         typed = _as_merge(items)
     else:
-        raise ValueError(f'Unsupported format: {format}')
+        raise ValueError(f'Unsupported RetType: {rettype}')
     yield from typed
+
+
+def _as_csv(
+    items: Generator[Dict[str, Any], None, None]
+) -> Generator[Dict[str, Any], None, None]:
+    """
+    Create a new csv file that represents generated data.
+    """
+    csvfile = StringIO()
+    first = next(items, None)
+    if first is not None:
+        fieldnames = list(first.keys())
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerow(first)
+        writer.writerows(items)
+        csvfile.seek(0)  # need to seek first posittion for readline() to return something
+        line = csvfile.readline()
+        while len(line) > 0:
+            yield line
+            line = csvfile.readline()
+    csvfile.close()
+
+
+def to_ret_mode(
+    items: Generator[Dict[str, Any], None, None], retmode: RetModeEnum
+) -> Generator[Any, None, None]:
+    """Map to particular MIME type"""
+    result = items
+    if retmode == RetModeEnum.json:
+        return result
+    elif retmode == RetModeEnum.csv:
+        result = _as_csv(items)
+        return StreamingResponse(result, media_type="text/csv")
+    else:
+        raise ValueError(f'Unsupported RetMode: {retmode}')
 
 
 @app.get('/')
@@ -166,4 +207,6 @@ def feed(
 
     items = load(updated, start, end, limit, skip)
     items = to_ret_type(items, rettype)
+    items = to_ret_mode(items, retmode)
+
     return items
