@@ -189,13 +189,48 @@ def to_ret_mode(items: Generator[Dict[str, Any], None, None], retmode: RetModeEn
 
 @app.get('/')
 def feed(
-    updated: str = Query(default=MIN_DATE, regex=date_regex),
-    start: str = Query(default=MIN_DATE, regex=date_regex),
-    end: str = Query(default=MAX_DATE, regex=date_regex),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=0, le=MAX_NUM_ITEMS),
-    skip: int = Query(default=0, ge=0, le=MAX_NUM_ITEMS),
-    rettype: RetTypeEnum = RetTypeEnum.default,
-    retmode: RetModeEnum = RetModeEnum.json,
+    updated: str = Query(
+        title="Last updated",
+        description="Include all items whose last updated date follows this date",
+        default=MIN_DATE,
+        regex=date_regex
+    ),
+    start: str = Query(
+        title="Start publication date",
+        description="Include all items whose publication date is greater than or equal to this date",
+        default=MIN_DATE,
+        regex=date_regex
+    ),
+    end: str = Query(
+        title="End publication date",
+        description="Include all items whose publication date is less than or equal to this date",
+        default=MAX_DATE,
+        regex=date_regex
+    ),
+    limit: int = Query(
+        title="Limit",
+        description="Max number of items",
+        default=DEFAULT_LIMIT,
+        ge=0,
+        le=MAX_NUM_ITEMS
+    ),
+    skip: int = Query(
+        title="Skip",
+        description="Offset for the collection of items",
+        default=0,
+        ge=0,
+        le=MAX_NUM_ITEMS
+    ),
+    rettype: RetTypeEnum = Query(
+        title="rettype",
+        description="Data format to return - default is raw response",
+        default=RetTypeEnum.default
+    ),
+    retmode: RetModeEnum = Query(
+        title="retmode",
+        description="MIME type of the response",
+        default=RetModeEnum.json
+    )
 ):
     items = load(updated, start, end, limit, skip)
     items = to_ret_type(items, rettype)
