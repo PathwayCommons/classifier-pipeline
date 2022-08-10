@@ -158,9 +158,7 @@ def to_ret_type(
     yield from typed
 
 
-def _as_csv(
-    items: Generator[Dict[str, Any], None, None]
-) -> Generator[Dict[str, Any], None, None]:
+def _as_csv(items: Generator[Dict[str, Any], None, None]) -> Generator[Any, None, None]:
     """
     Create a new csv file that represents generated data.
     """
@@ -180,9 +178,7 @@ def _as_csv(
     csvfile.close()
 
 
-def to_ret_mode(
-    items: Generator[Dict[str, Any], None, None], retmode: RetModeEnum
-) -> Generator[Any, None, None]:
+def to_ret_mode(items: Generator[Dict[str, Any], None, None], retmode: RetModeEnum) -> Generator[Any, None, None]:
     """Map to particular MIME type"""
     result = items
     if retmode == RetModeEnum.json:
@@ -204,9 +200,7 @@ def feed(
     rettype: RetTypeEnum = RetTypeEnum.default,
     retmode: RetModeEnum = RetModeEnum.json,
 ):
-
     items = load(updated, start, end, limit, skip)
     items = to_ret_type(items, rettype)
     items = to_ret_mode(items, retmode)
-
     return items
