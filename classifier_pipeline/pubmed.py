@@ -221,7 +221,7 @@ def prediction_db_transformer() -> Callable[
                     'classification': classification,
                     'probability': probability,
                     'pub_date': pub_date,
-                    'last_updated': datetime.datetime.now(pytz.UTC)
+                    'last_updated': datetime.datetime.now(pytz.UTC),
                 }
             )
             yield document

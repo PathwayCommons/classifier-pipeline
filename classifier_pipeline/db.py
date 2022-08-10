@@ -7,6 +7,7 @@ MAX_NUM_ITEMS: int = 100000
 MAX_DATE: str = '9999-12-31'
 MIN_DATE: str = '1400-01-01'
 
+
 class Table(NamedTuple):
     rethink: Any
     conn: Any
