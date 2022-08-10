@@ -24,6 +24,8 @@ loguru = "^0.6.0"
 pathway-abstract-classifier = "^0.2.2"
 pydantic = "^1.9.0"
 rethinkdb = "^2.4.9"
+fastapi = "^0.79.0"
+uvicorn = {extras = ["standard"], version = "^0.18.2"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
