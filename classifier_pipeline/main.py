@@ -64,19 +64,20 @@ r, conn, db, table = database.access_table(table_name=DB_TABLE)
 ####################################################
 
 
-def load(updated: str, start: str, end: str, limit: int, skip: int):
+def load(start: str, end: str, pubstart: str, pubend: str, limit: int, skip: int):
     """Access the database as specified"""
-    last_updated = to_date(updated)
-    start_date = to_date(start)
-    end_date = to_date(end)
+    last_updated_start = to_date(start)
+    last_updated_end = to_date(end)
+    start_date = to_date(pubstart)
+    end_date = to_date(pubend)
     q = table
     # ---- Select ----
     # Minimum last updated date
-    q = q.between(last_updated, MAX_DATE_TIME, index='last_updated', right_bound='closed')
+    q = q.between(last_updated_start, last_updated_end, index='last_updated')
 
     # ---- Filter ----
     # Publication date range
-    pubdate_filter = r.row['pub_date'].ge(start_date) & r.row['pub_date'].le(end_date)
+    pubdate_filter = r.row['pub_date'].ge(start_date) & r.row['pub_date'].lt(end_date)
     docFilters = pubdate_filter
     q = q.filter(docFilters)
 
@@ -189,19 +190,25 @@ def to_ret_mode(items: Generator[Dict[str, Any], None, None], retmode: RetModeEn
 
 @app.get('/')
 def feed(
-    updated: str = Query(
-        title="Last updated",
+    start: str = Query(
+        title="Last updated start date",
         description="Include all items whose last updated date follows this date",
         default=MIN_DATE,
         regex=date_regex
     ),
-    start: str = Query(
+    end: str = Query(
+        title="Last updated end date",
+        description="Include all items whose last updated date precedes this date",
+        default=MAX_DATE,
+        regex=date_regex
+    ),
+    pubstart: str = Query(
         title="Start publication date",
         description="Include all items whose publication date is greater than or equal to this date",
         default=MIN_DATE,
         regex=date_regex
     ),
-    end: str = Query(
+    pubend: str = Query(
         title="End publication date",
         description="Include all items whose publication date is less than or equal to this date",
         default=MAX_DATE,
@@ -232,7 +239,7 @@ def feed(
         default=RetModeEnum.json
     )
 ):
-    items = load(updated, start, end, limit, skip)
+    items = load(start, end, pubstart, pubend, limit, skip)
     items = to_ret_type(items, rettype)
     items = to_ret_mode(items, retmode)
     return items
