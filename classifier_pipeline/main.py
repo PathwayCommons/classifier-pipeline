@@ -85,8 +85,8 @@ def load(start: str, end: str, pubstart: str, pubend: str, limit: int, skip: int
     q = q.order_by(r.desc('pub_date'))
 
     # ---- Limit ----
-    q = q.limit(limit)
     q = q.skip(skip)
+    q = q.limit(limit)
 
     cursor = q.run(conn)
     yield from cursor
