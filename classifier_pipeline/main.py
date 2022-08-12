@@ -95,6 +95,7 @@ def load(start: str, end: str, pubstart: str, pubend: str, limit: int, skip: int
 def _as_merge(items: Generator[Dict[str, Any], None, None]) -> Generator[Dict[str, Any], None, None]:
     """Format output fields useful in mail-merge"""
 
+
     def _get_citation(item: Dict[str, Any]):
         journal = item['journal']
         full_title = journal['title'] if 'title' in journal else ''
@@ -132,17 +133,23 @@ def _as_merge(items: Generator[Dict[str, Any], None, None]) -> Generator[Dict[st
                     emailRecipientAddress = correspondence_item['emails'][-1]
         return {'emailRecipientAddress': emailRecipientAddress, 'authorName': author['fore_name']}
 
+    emails = set()
     for item in items:
         author = _get_author(item)
-        yield {
-            'pmid': item['pmid'],
-            'doi': item['doi'],
-            'articleCitation': _get_citation(item),
-            'pubDate': item['pub_date'],
-            'lastUpdated': item['last_updated'],
-            'authorName': author['authorName'],
-            'emailRecipientAddress': author['emailRecipientAddress'],
-        }
+        emailRecipientAddress = author['emailRecipientAddress']
+        if emailRecipientAddress is None or emailRecipientAddress in emails:
+            continue
+        else:
+            emails.add(emailRecipientAddress)
+            yield {
+                'pmid': item['pmid'],
+                'doi': item['doi'],
+                'articleCitation': _get_citation(item),
+                'pubDate': item['pub_date'],
+                'lastUpdated': item['last_updated'],
+                'authorName': author['authorName'],
+                'emailRecipientAddress': emailRecipientAddress
+            }
 
 
 def to_ret_type(
