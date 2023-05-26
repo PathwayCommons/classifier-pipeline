@@ -43,6 +43,22 @@ Install the dependencies:
 $ poetry install
 ```
 
+### Web server
+
+To start up the server:
+
+```bash
+uvicorn classifier_pipeline.main:app --port 8000 --reload
+```
+
+- [uvicron options](https://www.uvicorn.org/#command-line-options)
+  - `--reload`: Enable auto-reload.
+  - `--port INTEGER`: Bind socket to this port (default 8000)
+
+And now, go to [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc) (swap out the port if neccessary) to see the automatic documentation.
+
+### Pipeline
+
 Launch a pipeline to process daily updates from PubMed and dump the RethinkDB database:
 
 ```bash
