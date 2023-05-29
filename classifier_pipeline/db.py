@@ -112,5 +112,5 @@ class Db(BaseModel):
     def set(self, table_name: str, data: Dict[str, Any]) -> Dict[str, int]:
         set_result = None
         _, conn, _, table = self._guarantee_table(table_name)
-        set_result = table.insert(data).run(conn)
+        set_result = table.insert(data, conflict='replace').run(conn)
         return set_result

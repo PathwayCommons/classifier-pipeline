@@ -7,7 +7,7 @@ This repository is geared heavily towards drawing articles from PubMed, identify
 ## Requirements
 
 - [Python (version >=3.8<3.10)](https://www.python.org/)
-- [Poetry (version >1.0.0)](https://python-poetry.org/)
+- [Poetry (version >=1.5.0)](https://python-poetry.org/)
 - [Docker (version 20.10.14) and Docker Compose (version 2.5.1)](https://www.docker.com/)
   - We use Docker to create a [RethinkDB (v2.3.6)](https://rethinkdb.com/) instance for loading data.
 - [Miniconda](https://docs.conda.io/en/latest/miniconda.html) (Optional)
@@ -42,6 +42,22 @@ Install the dependencies:
 ```bash
 $ poetry install
 ```
+
+### Web server
+
+To start up the server:
+
+```bash
+uvicorn classifier_pipeline.main:app --port 8000 --reload
+```
+
+- [uvicron options](https://www.uvicorn.org/#command-line-options)
+  - `--reload`: Enable auto-reload.
+  - `--port INTEGER`: Bind socket to this port (default 8000)
+
+And now, go to [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc) (swap out the port if neccessary) to see the automatic documentation.
+
+### Pipeline
 
 Launch a pipeline to process daily updates from PubMed and dump the RethinkDB database:
 

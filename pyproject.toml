@@ -26,6 +26,8 @@ pydantic = "^1.9.0"
 rethinkdb = "^2.4.9"
 fastapi = "^0.79.0"
 uvicorn = {extras = ["standard"], version = "^0.18.2"}
+urllib3 = "1.26.15"
+protobuf = ">=3.20.0,<3.21.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -53,5 +55,5 @@ remove_dist = false                         # don't remove dists
 patch_without_tag = true                    # patch release by default
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.5.0"]
 build-backend = "poetry.core.masonry.api"
