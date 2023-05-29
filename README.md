@@ -7,7 +7,7 @@ This repository is geared heavily towards drawing articles from PubMed, identify
 ## Requirements
 
 - [Python (version >=3.8<3.10)](https://www.python.org/)
-- [Poetry (version >1.0.0)](https://python-poetry.org/)
+- [Poetry (version >=1.5.0)](https://python-poetry.org/)
 - [Docker (version 20.10.14) and Docker Compose (version 2.5.1)](https://www.docker.com/)
   - We use Docker to create a [RethinkDB (v2.3.6)](https://rethinkdb.com/) instance for loading data.
 - [Miniconda](https://docs.conda.io/en/latest/miniconda.html) (Optional)
